@@ -1,0 +1,13 @@
+# Only the mod's own files go in the repository. Everything else in this folder is Undertale itself,
+# build caches, test saves or the packaged release, so everything is ignored unless listed here.
+/*
+!/.gitignore
+!/README.md
+!/LICENSE
+!/mod/
+
+# generated from the decompiled game during a build: never publish
+/mod/gen/
+__pycache__/
+*.pyc
+*.patch

@@ -1,0 +1,45 @@
+UNDERTALE FRAMERATE MOD  -  test version 0.1
+=============================================
+
+Plays Undertale at 60, 120 or more frames per second, at the normal game speed.
+
+THIS IS AN EARLY TEST VERSION. Expect bugs and issues.
+
+You need Undertale on Steam (Windows), fully updated.
+
+
+INSTALL
+1. Unzip this first: right-click the zip file > Extract All.
+2. In the unzipped folder, double-click  Install.bat
+   (If a blue "Windows protected your PC" box appears: click "More info", then "Run anyway".)
+3. It finds Undertale by itself. Press Enter.
+4. When it says "Installed!", press any key to close the window.
+
+
+PLAY
+1. Make sure Steam is running.
+2. Double-click  "Undertale (Framerate Mod)"  on your desktop.
+
+In game:
+- F1 opens the mod settings: frame rate, VSync, controls.
+- W A S D move, J = confirm, K = cancel, L = menu. The normal keys work too.
+
+The mod uses your normal Undertale save. To be safe, back it up first: paste
+%LOCALAPPDATA%\UNDERTALE  into the File Explorer address bar and copy that folder
+somewhere safe.
+
+Starting Undertale from Steam still plays the normal, unmodded game.
+
+The installer changes one setting in Undertale's options.ini, so the frame rate can go
+above your monitor's refresh rate. Uninstalling puts it back.
+
+
+UNINSTALL
+Double-click  Uninstall.bat  and press Enter. Your saves are kept.
+
+
+FOUND A BUG?
+Tell the person who sent you this:
+- where you were in the game and what happened,
+- your frame rate setting (F1),
+- a screenshot or short video if you can.
