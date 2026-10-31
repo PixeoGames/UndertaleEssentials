@@ -82,9 +82,8 @@ More detail is in the [developer notes](mod/README.md).
 - The picture appears about one frame later than in the original.
 - Caps that aren't a multiple of 30 (like 144) run at normal speed, but the in-between frames are
   spaced a little less evenly.
-- A frame rate cap keeps one CPU core busy, because GameMaker can't wait precisely on Windows and the
-  mod has to check the clock instead. Unlimited, or VSync with a cap at or above your monitor's
-  refresh rate, uses much less.
+- If the timer fix can't run (an UNDERTALE.exe other than Steam's v1.08), a frame rate cap keeps one
+  CPU core busy, because the mod then has to check the clock to hold it.
 - Most testing so far has been in the early game. Bugs in later scenes are possible.
 
 ## Building from source

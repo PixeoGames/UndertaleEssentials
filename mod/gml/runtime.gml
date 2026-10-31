@@ -124,6 +124,7 @@ for (var v = 7; v >= 0; v--)
     global.__fl_vpy[v] = 0;
     global.__fl_vcx[v] = 0;
     global.__fl_vcy[v] = 0;
+    global.__fl_vshk[v] = 0;
 }
 global.__fl_version = "0.2 EARLY TEST";
 global.__fl_font = -1;       // the game's current font and text alignment (the draw_set_font /
@@ -142,9 +143,14 @@ global.__fl_tracevar = "";
 global.__fl_testbattle = 0;  // F11 starts this battle group (testing only)
 global.__fl_timerfix = 1;    // ask Windows for 1 ms timer resolution at startup (see __fl_timerfix)
 global.__fl_timerstatus = "off";
+global.__fl_capmode = -1;    // test hook: 1 = the runner holds the cap, 0 = __fl_limit does, -1 = automatic
 global.__fl_cmdhook = 0;     // 1 = take test commands from fl_cmd.txt (testing only)
 global.__fl_cmdpoll = 0;
 global.__fl_cmdkeys = ds_list_create();
+global.__fl_mtmode = 0;      // movement test (test hook): 0 off, 1 glide, 2 jitter
+global.__fl_mtinst = noone;
+global.__fl_mtpart = 0;
+global.__fl_mtreal = 0;
 global.__fl_testsound = 0;   // F7 plays the True Pacifist ending's rising sound (testing only)
 global.__fl_sndtest = 0;     // ticks it has been playing (0 = off)
 global.__fl_sndasset = -1;
@@ -306,14 +312,26 @@ if (global.__fl_unlimited)
 return global.__fl_fps;
 
 // @@ gml_Script___fl_roomspeed
-// The runner always runs unlimited: its own limiter sleeps in 15.6 ms steps on Windows (it never
-// raises the timer resolution), so a cap like 75 or 144 would come out at 64. __fl_limit holds the cap.
+// The frame rate the runner aims for. Its own limiter sleeps, which is only precise with 1 ms timer
+// resolution (__fl_timerfix, or Wine): then it holds the cap. Otherwise it sleeps in 15.6 ms steps
+// (a cap like 75 or 144 would come out at 64), so it runs unlimited and __fl_limit holds the cap.
+if (__fl_runnercap())
+    return max(global.__fl_fps, global.__fl_tps);
 return max(1000, global.__fl_tps);
 
-// @@ gml_Script___fl_limit
-// Frame rate cap, at the very end of each frame: wait until this frame's slot is over. It waits by
-// checking the clock (GML can't sleep), so a capped frame rate keeps one CPU core busy.
+// @@ gml_Script___fl_runnercap
+// Whether the runner's own limiter holds the frame rate cap (see __fl_roomspeed).
 if (global.__fl_unlimited)
+    return 0;
+if (global.__fl_capmode >= 0)
+    return global.__fl_capmode;     // set by the test hook
+return (global.__fl_timerstatus == "on" || global.__fl_timerstatus == "Wine");
+
+// @@ gml_Script___fl_limit
+// Frame rate cap, at the very end of each frame, when the runner can't hold it itself
+// (__fl_roomspeed): wait until this frame's slot is over. It waits by checking the clock (GML can't
+// sleep), so this keeps one CPU core busy.
+if (global.__fl_unlimited || __fl_runnercap())
     exit;
 var period = 1000000 / global.__fl_fps;
 var now = get_timer();
@@ -345,6 +363,21 @@ room_speed = __fl_roomspeed();
 // @@ gml_Script___fl_beginstep
 if (global.__fl_perf)
     global.__fl_pf_t0 = get_timer();
+if (global.__fl_mtmode > 0 && !global.__fl_skip && instance_exists(global.__fl_mtinst))
+{
+    // movement test (test hook): 1 glides 3 px a tick, 2 jitters up to 3 px either way
+    with (global.__fl_mtinst)
+    {
+        if (global.__fl_mtmode == 1)
+        {
+            x += 3;
+            if (x > 600)
+                x = 40;
+        }
+        else
+            x = 300 + irandom_range(-3, 3);
+    }
+}
 if (global.__fl_sndtest > 0 && !global.__fl_skip)
 {
     // F7 sound test: the same steps per tick as obj_friendscene, for as long as its fade lasts
@@ -443,7 +476,20 @@ if (room_speed != __fl_roomspeed())
 if (!global.__fl_skip)
     __fl_sample();
 if (!global.__fl_real)
+{
     __fl_tw_begin();
+    if (global.__fl_mtmode > 0 && instance_exists(global.__fl_mtinst))
+    {
+        // movement test (test hook): is the test instance shown part-way or where it really is?
+        with (global.__fl_mtinst)
+        {
+            if (x != __fl_cx)
+                global.__fl_mtpart += 1;
+            else
+                global.__fl_mtreal += 1;
+        }
+    }
+}
 if (global.__fl_trace >= 0)
 {
     // what this frame will show
@@ -474,6 +520,17 @@ with (all)
         have = (__fl_cg == gen);
     if (have)
     {
+        // a shake: this tick's move turns back on the last one (by more than 90 degrees, at least a
+        // pixel each way). Shown part-way, a shake becomes a smooth sway; the original jumps, so
+        // show this tick and the next two as they are.
+        var dx0 = __fl_cx - __fl_px;
+        var dy0 = __fl_cy - __fl_py;
+        var dx1 = x - __fl_cx;
+        var dy1 = y - __fl_cy;
+        if (((dx0 * dx1) + (dy0 * dy1)) < 0 && ((dx0 * dx0) + (dy0 * dy0)) >= 1 && ((dx1 * dx1) + (dy1 * dy1)) >= 1)
+            __fl_shk = 3;
+        else if (__fl_shk > 0)
+            __fl_shk -= 1;
         __fl_px = __fl_cx;
         __fl_py = __fl_cy;
         __fl_pa = __fl_ca;
@@ -489,6 +546,7 @@ with (all)
         __fl_pal = image_alpha;
         __fl_psx = image_xscale;
         __fl_psy = image_yscale;
+        __fl_shk = 0;
     }
     __fl_cx = x;
     __fl_cy = y;
@@ -503,6 +561,15 @@ for (var v = 0; v < 8; v++)
 {
     if (global.__fl_vgen == gen)
     {
+        // camera shakes, as for instances above
+        var vx0 = global.__fl_vcx[v] - global.__fl_vpx[v];
+        var vy0 = global.__fl_vcy[v] - global.__fl_vpy[v];
+        var vx1 = view_xview[v] - global.__fl_vcx[v];
+        var vy1 = view_yview[v] - global.__fl_vcy[v];
+        if (((vx0 * vx1) + (vy0 * vy1)) < 0 && ((vx0 * vx0) + (vy0 * vy0)) >= 1 && ((vx1 * vx1) + (vy1 * vy1)) >= 1)
+            global.__fl_vshk[v] = 3;
+        else if (global.__fl_vshk[v] > 0)
+            global.__fl_vshk[v] -= 1;
         global.__fl_vpx[v] = global.__fl_vcx[v];
         global.__fl_vpy[v] = global.__fl_vcy[v];
     }
@@ -510,6 +577,7 @@ for (var v = 0; v < 8; v++)
     {
         global.__fl_vpx[v] = view_xview[v];
         global.__fl_vpy[v] = view_yview[v];
+        global.__fl_vshk[v] = 0;
     }
     global.__fl_vcx[v] = view_xview[v];
     global.__fl_vcy[v] = view_yview[v];
@@ -560,8 +628,8 @@ if (global.__fl_interp)
         {
             if (__fl_cg == gen)
             {
-                // position (big jumps are teleports: shown as-is)
-                if (x == __fl_cx && y == __fl_cy)
+                // position (big jumps are teleports and shakes jump in the original: shown as-is)
+                if (x == __fl_cx && y == __fl_cy && __fl_shk == 0)
                 {
                     var dx = __fl_cx - __fl_px;
                     var dy = __fl_cy - __fl_py;
@@ -612,7 +680,7 @@ if (global.__fl_interp)
     {
         for (var v = 0; v < 8; v++)
         {
-            if (view_xview[v] == global.__fl_vcx[v] && view_yview[v] == global.__fl_vcy[v])
+            if (view_xview[v] == global.__fl_vcx[v] && view_yview[v] == global.__fl_vcy[v] && global.__fl_vshk[v] == 0)
             {
                 var vdx = global.__fl_vcx[v] - global.__fl_vpx[v];
                 var vdy = global.__fl_vcy[v] - global.__fl_vpy[v];
@@ -1245,6 +1313,7 @@ global.__fl_pf_frames = 0;
 global.__fl_pf_ticks = 0;
 global.__fl_pf_slow = 0;
 global.__fl_pf_maxdt = 0;
+global.__fl_pf_mindt = 1000000;
 global.__fl_pf_maxgap = 0;
 global.__fl_pf_maxwork = 0;
 global.__fl_pf_maxrb = 0;
@@ -1279,6 +1348,7 @@ global.__fl_pf_frames += 1;
 global.__fl_pf_sumwork += work;
 global.__fl_pf_sumrb += rb;
 global.__fl_pf_maxdt = max(global.__fl_pf_maxdt, dt);
+global.__fl_pf_mindt = min(global.__fl_pf_mindt, dt);
 global.__fl_pf_maxwork = max(global.__fl_pf_maxwork, work);
 global.__fl_pf_maxrb = max(global.__fl_pf_maxrb, rb);
 global.__fl_pf_maxlog = max(global.__fl_pf_maxlog, lg);
@@ -1315,7 +1385,7 @@ if ((now - global.__fl_pf_t) >= 1000000)
 {
     var secs = (now - global.__fl_pf_t) / 1000000;
     var nf = max(1, global.__fl_pf_frames);
-    global.__fl_pf_buf += string_format((now - global.__fl_starttime) / 1000000, 1, 1) + " s: fps " + string_format(global.__fl_pf_frames / secs, 1, 0) + ", ticks " + string_format(global.__fl_pf_ticks / secs, 1, 1) + ", slowest frame " + string_format(global.__fl_pf_maxdt / 1000, 1, 1) + " ms, longest tick gap " + string_format(global.__fl_pf_maxgap / 1000, 1, 1) + " ms, work avg " + string_format(global.__fl_pf_sumwork / nf / 1000, 1, 2) + " max " + string_format(global.__fl_pf_maxwork / 1000, 1, 1) + ", rollback avg " + string_format(global.__fl_pf_sumrb / nf / 1000, 1, 2) + " max " + string_format(global.__fl_pf_maxrb / 1000, 1, 1) + ", tail max " + string_format(global.__fl_pf_maxtail / 1000, 1, 1) + " (file write " + string_format(global.__fl_pf_maxflush / 1000, 1, 1) + "), runner max " + string_format(global.__fl_pf_maxrunner / 1000, 1, 1) + ", log max " + string(global.__fl_pf_maxlog) + ", slow frames " + string(global.__fl_pf_slow) + ", instances " + string(instance_count) + ", " + room_get_name(room) + w + chr(13) + chr(10);
+    global.__fl_pf_buf += string_format((now - global.__fl_starttime) / 1000000, 1, 1) + " s: fps " + string_format(global.__fl_pf_frames / secs, 1, 0) + ", ticks " + string_format(global.__fl_pf_ticks / secs, 1, 1) + ", frames " + string_format(global.__fl_pf_mindt / 1000, 1, 1) + " to " + string_format(global.__fl_pf_maxdt / 1000, 1, 1) + " ms, longest tick gap " + string_format(global.__fl_pf_maxgap / 1000, 1, 1) + " ms, work avg " + string_format(global.__fl_pf_sumwork / nf / 1000, 1, 2) + " max " + string_format(global.__fl_pf_maxwork / 1000, 1, 1) + ", rollback avg " + string_format(global.__fl_pf_sumrb / nf / 1000, 1, 2) + " max " + string_format(global.__fl_pf_maxrb / 1000, 1, 1) + ", tail max " + string_format(global.__fl_pf_maxtail / 1000, 1, 1) + " (file write " + string_format(global.__fl_pf_maxflush / 1000, 1, 1) + "), runner max " + string_format(global.__fl_pf_maxrunner / 1000, 1, 1) + ", log max " + string(global.__fl_pf_maxlog) + ", slow frames " + string(global.__fl_pf_slow) + ", instances " + string(instance_count) + ", " + room_get_name(room) + w + chr(13) + chr(10);
     global.__fl_pf_t = now;
     __fl_perf_reset();
     if (global.__fl_pf_lines < 20000)
@@ -1892,6 +1962,8 @@ global.__fl_sndtest = 1;
 //   sound [NAME] / stop                the F7 sound test (or another sound asset), stop all sounds
 //   gain X                             master volume
 //   report                             frame rate, ticks, room, timer resolution fix status
+//   movetest glide|jitter|stop, movereport   checks how in-between frames show a moving instance
+//   cap N|unlimited, capmode runner|spin|auto    frame rate cap, and who holds it
 //   quit                               close the game
 var now = get_timer();
 for (var k = ds_list_size(global.__fl_cmdkeys) - 2; k >= 0; k -= 2)
@@ -1978,6 +2050,47 @@ for (var i = 0; i < n; i++)
         audio_master_gain(real(arg));
         out = "master gain " + arg;
     }
+    else if (word == "movetest")
+    {
+        // movetest glide|jitter|stop: an invisible instance that moves every tick; movereport says
+        // how many in-between frames showed it part-way and how many where it really was
+        if (!instance_exists(global.__fl_mtinst))
+            global.__fl_mtinst = instance_create(300, 200, obj___fl_sink);
+        global.__fl_mtmode = 0;
+        if (arg == "glide")
+            global.__fl_mtmode = 1;
+        else if (arg == "jitter")
+            global.__fl_mtmode = 2;
+        global.__fl_mtpart = 0;
+        global.__fl_mtreal = 0;
+        out = "movement test " + arg;
+    }
+    else if (word == "cap")
+    {
+        // cap N: frame rate cap N (unlimited off); cap unlimited
+        if (arg == "unlimited")
+            global.__fl_unlimited = 1;
+        else
+        {
+            global.__fl_unlimited = 0;
+            global.__fl_fps = real(arg);
+        }
+        __fl_rate_changed();
+        out = "cap " + arg + ", room_speed " + string(room_speed);
+    }
+    else if (word == "capmode")
+    {
+        // capmode runner|spin|auto: who holds the frame rate cap (see __fl_roomspeed)
+        global.__fl_capmode = -1;
+        if (arg == "runner")
+            global.__fl_capmode = 1;
+        else if (arg == "spin")
+            global.__fl_capmode = 0;
+        __fl_rate_changed();
+        out = "cap held by " + arg + ", room_speed " + string(room_speed);
+    }
+    else if (word == "movereport")
+        out = "in-between frames: " + string(global.__fl_mtpart) + " part-way, " + string(global.__fl_mtreal) + " at the real position";
     else if (word == "report")
         out = "fps " + string(global.__fl_stat_fps) + ", ticks " + string(global.__fl_stat_tps) + ", " + room_get_name(room) + ", timer fix " + global.__fl_timerstatus;
     else if (word == "quit")

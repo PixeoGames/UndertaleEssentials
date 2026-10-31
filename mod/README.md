@@ -31,11 +31,12 @@ the menu's saved settings win. `-fps N` on the command line overrides both.
 If the computer can't hold the chosen frame rate, the mod draws fewer in-between frames and the game
 keeps its normal speed. Below 30 fps it slows down the way the original does.
 
-**Frame rate cap:** GameMaker's own frame limiter sleeps in 15.6 ms steps on Windows (the runner never
-raises the timer resolution), so a cap like 75 or 144 would come out at 64 fps. So the runner always
-runs unlimited and the mod holds the cap itself at the end of each frame (`__fl_limit`). GML can't
-sleep, so it waits by checking the clock, which keeps one CPU core busy while a cap is set. Unlimited,
-or VSync with a cap at or above the monitor's refresh rate, uses much less.
+**Frame rate cap:** GameMaker's own frame limiter sleeps, and on Windows a sleep is only precise
+with 1 ms timer resolution. With the timer fix below (or under Wine) it is, so the runner holds the
+cap (`room_speed` = the cap): at 75, 144 and 240 it measures 75, 144 and 237 to 240 fps, using 0.2
+to 0.5 of a CPU core. Without it the runner sleeps in 15.6 ms steps (a cap like 75 or 144 would come
+out at 64), so it runs unlimited and the mod holds the cap at the end of each frame instead
+(`__fl_limit`). GML can't sleep, so that waits by checking the clock and keeps one CPU core busy.
 
 **Frame rate above the monitor's refresh rate:** Undertale's `options.ini` has
 `AlternateSyncMethod=1`, a GameMaker option that times every frame to the monitor's refresh whatever
@@ -74,7 +75,10 @@ anything. So each tick is drawn **for real exactly once**, on the frame just bef
 other frame is a **throwaway** frame:
 
 1. Instances, the camera, rotation, fades and scaling are placed part-way between the previous tick and
-   the current one.
+   the current one. Big jumps (teleports) and shakes are shown as they are, as in the original: a
+   shake is a move that turns back on the previous tick's by more than 90 degrees, at least a pixel
+   each way, and it shows that tick and the next two without smoothing. Shown part-way, random
+   shakes would turn into a smooth sway.
 2. The game's draw code runs as usual and produces the picture.
 3. Everything it changed is rolled back. Before every write to a non-local variable, the build inserts a
    *barrier* that logs the old value. Side-effecting built-ins (sounds, room changes, file writes,
@@ -149,4 +153,7 @@ save folder). `package.py` makes the tester package in `dist/` and a .zip of it:
   `fl_cmd.txt` in the save folder (read and deleted about ten times a second) and reads replies
   from `fl_cmd_out.txt`: `tap`/`hold`/`release KEY` (held keys go through a `keyboard_check`
   wrapper, since GameMaker's `keyboard_key_press` doesn't change what `keyboard_check` reports),
-  `sound [NAME]`, `stop`, `gain X`, `report` (frame rate, ticks, room, timer fix status), `quit`.
+  `sound [NAME]`, `stop`, `gain X`, `report` (frame rate, ticks, room, timer fix status), `quit`,
+  `cap N|unlimited` and `capmode runner|spin|auto` (who holds the frame rate cap), and
+  `movetest glide|jitter` with `movereport` (how in-between frames show a moving test instance:
+  gliding should show part-way, jittering at its real position).
