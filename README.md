@@ -1,9 +1,24 @@
 # Undertale Framerate Mod
 
-Play Undertale at 60, 120, 144 fps or more, at the game's normal speed.
+> [!CAUTION]
+> ## Early test version: use at your own risk
+>
+> This mod is in **active, early-stage development**. It includes testing and debugging features,
+> and it has had very little testing in most of the game. While using it, any of these can happen:
+>
+> - **bugs and glitches**: scenes that look or behave wrong, missed inputs, sound problems
+> - **crashes** and **soft-locks** (getting stuck with no way forward)
+> - **save file loss or corruption**
+>
+> **Back up your saves before playing**: copy the folder `%LOCALAPPDATA%\UNDERTALE` somewhere
+> safe, and back it up again before big moments in the game. The mod shares its saves with the
+> normal game.
+>
+> If something breaks, please [open an issue](../../issues) and say where you were in the game and
+> what your frame rate setting was. The mod is provided as is, with no warranty (see the
+> [license](LICENSE)).
 
-> **Early test version (0.1).** Expect bugs and issues. If something breaks, please
-> [open an issue](../../issues) and say where you were in the game and what your frame rate setting was.
+Play Undertale at 60, 120, 144 fps or more, at the game's normal speed.
 
 ## What you need
 
