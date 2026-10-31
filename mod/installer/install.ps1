@@ -11,7 +11,7 @@ param([string]$GameDir = '', [switch]$Uninstall, [string]$ShortcutDir = '')
 $ErrorActionPreference = 'Stop'
 $Here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $PatchPath = Join-Path $Here 'data_framerate.patch'
-$Version = '0.1 (early test)'
+$Version = '0.2 (early test)'
 $ModFile = 'data_framerate.win'
 $Shortcut = 'Undertale Essentials.lnk'
 # file names from when the mod was called "Undertale Framerate Mod", kept so earlier installs

@@ -34,7 +34,7 @@ in the unchanged game. The story, art, music and balance stay exactly as they we
 
 ## Install
 
-1. Download `UndertaleEssentials-0.1-test.zip` from [Releases](../../releases) and extract it.
+1. Download `UndertaleEssentials-0.2-test.zip` from [Releases](../../releases) and extract it.
 2. Double-click `Install.bat`. It finds Undertale by itself; press Enter.
 3. Play with the new **Undertale Essentials** shortcut on your desktop (Steam must be running).
 

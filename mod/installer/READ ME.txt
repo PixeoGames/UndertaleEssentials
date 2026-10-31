@@ -1,4 +1,4 @@
-UNDERTALE ESSENTIALS  -  test version 0.1
+UNDERTALE ESSENTIALS  -  test version 0.2
 ==========================================
 
 Undertale kept as close to the original as possible, with only the essentials
