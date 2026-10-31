@@ -33,6 +33,21 @@ if (global.__fl_testbattle > 0 && global.__fl_menu == 0 && instance_exists(obj_m
     instance_create(0, 0, obj_battler);
 }
 
+// @@ gml_Object_obj___fl_first_KeyPress_118
+// F7 plays the sound from the True Pacifist ending's last fade to white, rising in pitch and
+// volume the way obj_friendscene does it, or stops it. Only if testsound=1 is set in
+// UndertaleFramerate.ini (testing only).
+if (global.__fl_testsound && global.__fl_menu == 0)
+{
+    if (global.__fl_sndtest > 0)
+    {
+        audio_stop_sound(global.__fl_sndasset);
+        global.__fl_sndtest = 0;
+    }
+    else
+        __fl_sndtest_start(mus_f_destroyed3);
+}
+
 // @@ gml_Object_obj___fl_last_Draw_75
 __fl_endframe();
 
@@ -64,6 +79,7 @@ for (var k = 255; k >= 0; k--)
     global.__fl_kwin[k] = 0;
     global.__fl_rpend[k] = 0;
     global.__fl_rwin[k] = 0;
+    global.__fl_kinject[k] = 0;
 }
 // keys whose pressed/released state is carried over to the frames that run game code
 var n = 0;
@@ -121,6 +137,19 @@ global.__fl_trace = -1;      // object whose position/animation is logged every 
 global.__fl_trace2 = -1;     // optional second object, and one of its variables, for the trace
 global.__fl_tracevar = "";
 global.__fl_testbattle = 0;  // F11 starts this battle group (testing only)
+global.__fl_timerfix = 1;    // ask Windows for 1 ms timer resolution at startup (see __fl_timerfix)
+global.__fl_timerstatus = "off";
+global.__fl_cmdhook = 0;     // 1 = take test commands from fl_cmd.txt (testing only)
+global.__fl_cmdpoll = 0;
+global.__fl_cmdkeys = ds_list_create();
+global.__fl_testsound = 0;   // F7 plays the True Pacifist ending's rising sound (testing only)
+global.__fl_sndtest = 0;     // ticks it has been playing (0 = off)
+global.__fl_sndasset = -1;
+global.__fl_sndpit = 1;
+global.__fl_sndvol = 1;
+global.__fl_perf = 0;        // 1 = log frame timings to fl_perf.txt (testing only)
+global.__fl_watchobj = -1;   // optional object and variable shown in the timing log
+global.__fl_watchvar = "";
 global.__fl_interp = 1;
 global.__fl_snapdist = 48;
 global.__fl_vsync = 0;
@@ -161,6 +190,8 @@ global.__fl_mmsg = "";
 global.__fl_starttime = get_timer();
 __fl_readconfig();
 __fl_settings_load();
+if (global.__fl_timerfix)
+    global.__fl_timerstatus = __fl_timerfix();
 // always apply it: Undertale's own game settings start with vsync on
 display_reset(0, global.__fl_vsync);
 __fl_apply_keys();
@@ -176,6 +207,18 @@ global.__fl_stat_logmax = 0;
 global.__fl_stat_tw = 0;
 global.__fl_val_lines = 0;
 global.__fl_val_bad = 0;
+global.__fl_pf_t0 = 0;
+global.__fl_pf_t1 = 0;
+global.__fl_pf_t2 = 0;
+global.__fl_pf_t3 = 0;
+global.__fl_pf_flush = 0;
+global.__fl_pf_log = 0;
+global.__fl_pf_last = get_timer();
+global.__fl_pf_lasttick = global.__fl_pf_last;
+global.__fl_pf_t = global.__fl_pf_last;
+global.__fl_pf_buf = "";
+global.__fl_pf_lines = 0;
+__fl_perf_reset();
 room_speed = __fl_roomspeed();
 
 // @@ gml_Script___fl_readconfig
@@ -210,6 +253,25 @@ if (file_exists("UndertaleFramerate.ini"))
                 global.__fl_trace2 = asset_get_index(string_replace_all(string_copy(line, eq + 1, string_length(line) - eq), " ", ""));
             else if (key == "testbattle")
                 global.__fl_testbattle = num;
+            else if (key == "perf")
+                global.__fl_perf = (num != 0);
+            else if (key == "testsound")
+                global.__fl_testsound = (num != 0);
+            else if (key == "timerfix")
+                global.__fl_timerfix = (num != 0);
+            else if (key == "cmdhook")
+                global.__fl_cmdhook = (num != 0);
+            else if (key == "watch")
+            {
+                // watch=object.variable
+                var w = string_replace_all(string_copy(line, eq + 1, string_length(line) - eq), " ", "");
+                var dot = string_pos(".", w);
+                if (dot > 0)
+                {
+                    global.__fl_watchobj = asset_get_index(string_copy(w, 1, dot - 1));
+                    global.__fl_watchvar = string_copy(w, dot + 1, string_length(w) - dot);
+                }
+            }
             else if (key == "tracevar")
                 global.__fl_tracevar = string_replace_all(string_copy(line, eq + 1, string_length(line) - eq), " ", "");
             else if (key == "interpolate")
@@ -278,6 +340,22 @@ global.__fl_commit = global.__fl_real;
 room_speed = __fl_roomspeed();
 
 // @@ gml_Script___fl_beginstep
+if (global.__fl_perf)
+    global.__fl_pf_t0 = get_timer();
+if (global.__fl_sndtest > 0 && !global.__fl_skip)
+{
+    // F7 sound test: the same steps per tick as obj_friendscene, for as long as its fade lasts
+    global.__fl_sndpit += 0.007;
+    global.__fl_sndvol += 0.005;
+    audio_sound_pitch(global.__fl_sndasset, global.__fl_sndpit);
+    audio_sound_gain(global.__fl_sndasset, global.__fl_sndvol, 0);
+    global.__fl_sndtest += 1;
+    if (global.__fl_sndtest > 467)
+    {
+        audio_stop_sound(global.__fl_sndasset);
+        global.__fl_sndtest = 0;
+    }
+}
 __fl_img_unfreeze();
 if (global.__fl_skip)
     __fl_mov_freeze();
@@ -551,6 +629,7 @@ global.__fl_tw = 0;
 var n = ds_list_size(global.__fl_log);
 if (n > global.__fl_stat_logmax)
     global.__fl_stat_logmax = n;
+global.__fl_pf_log = n;
 __fl_rollback();
 var mx = global.__fl_maxid;
 with (all)
@@ -878,6 +957,10 @@ if (global.__fl_skip)
     return global.__fl_kwin[argument0];
 return keyboard_check_pressed(argument0) || global.__fl_kpend[argument0];
 
+// @@ gml_Script___fl_kc
+// keyboard_check for game code: also true for a key the test hook holds down (__fl_cmd_frame).
+return keyboard_check(argument0) || global.__fl_kinject[argument0];
+
 // @@ gml_Script___fl_kcd
 // keyboard_check_direct reads the physical key, which the extra-key remap doesn't cover.
 if (keyboard_check_direct(argument0))
@@ -1049,16 +1132,26 @@ else
 
 // @@ gml_Script___fl_endframe
 // Draw GUI End of obj___fl_last: the last event of every frame (lowest depth).
+if (global.__fl_perf)
+    global.__fl_pf_t1 = get_timer();
 if (global.__fl_tw)
     __fl_tw_end();
+if (global.__fl_perf)
+    global.__fl_pf_t2 = get_timer();
 if (global.__fl_trace >= 0)
     __fl_trace_frame();
 __fl_keys_endframe();
 __fl_stats();
+if (global.__fl_perf)
+    __fl_perf_frame();
+if (global.__fl_cmdhook)
+    __fl_cmd_frame();
 __fl_menu_input();
 __fl_draw_gui();
 __fl_decide_next();
 __fl_limit();
+if (global.__fl_perf)
+    global.__fl_pf_t3 = get_timer();
 
 // @@ gml_Script___fl_decide_next
 // Decide what the next frame does: run a logic tick or not, and draw for real or throwaway.
@@ -1133,6 +1226,97 @@ if ((now - global.__fl_stat_t) >= 1000000)
     global.__fl_stat_ticks = 0;
     global.__fl_stat_tw = 0;
     global.__fl_stat_t = now;
+}
+
+// @@ gml_Script___fl_perf_reset
+global.__fl_pf_frames = 0;
+global.__fl_pf_ticks = 0;
+global.__fl_pf_slow = 0;
+global.__fl_pf_maxdt = 0;
+global.__fl_pf_maxgap = 0;
+global.__fl_pf_maxwork = 0;
+global.__fl_pf_maxrb = 0;
+global.__fl_pf_maxtail = 0;
+global.__fl_pf_maxrunner = 0;
+global.__fl_pf_maxflush = 0;
+global.__fl_pf_sumwork = 0;
+global.__fl_pf_sumrb = 0;
+global.__fl_pf_maxlog = 0;
+
+// @@ gml_Script___fl_perf_frame
+// Timing log (perf=1 in UndertaleFramerate.ini, testing only): one line per second, plus one for
+// every frame over 25 ms (or two frames' time at a low cap). A frame's time is split into:
+//   work: Begin Step to the end of drawing (game code)
+//   rollback: undoing a throwaway frame
+//   tail: the previous frame after this log (menu, overlay, scheduling, frame cap, this log's file write)
+//   runner: between the previous frame's end and this frame's Begin Step (the runner shows the
+//   frame and starts the next one)
+// Written to fl_perf.txt in the save folder, once a second.
+var now = get_timer();
+var dt = now - global.__fl_pf_last;
+var tail = global.__fl_pf_t3 - global.__fl_pf_last;
+var runner = global.__fl_pf_t0 - global.__fl_pf_t3;
+var flush = global.__fl_pf_flush;
+global.__fl_pf_flush = 0;
+global.__fl_pf_last = now;
+var work = global.__fl_pf_t1 - global.__fl_pf_t0;
+var rb = global.__fl_pf_t2 - global.__fl_pf_t1;
+var lg = global.__fl_pf_log;
+global.__fl_pf_log = 0;
+global.__fl_pf_frames += 1;
+global.__fl_pf_sumwork += work;
+global.__fl_pf_sumrb += rb;
+global.__fl_pf_maxdt = max(global.__fl_pf_maxdt, dt);
+global.__fl_pf_maxwork = max(global.__fl_pf_maxwork, work);
+global.__fl_pf_maxrb = max(global.__fl_pf_maxrb, rb);
+global.__fl_pf_maxlog = max(global.__fl_pf_maxlog, lg);
+global.__fl_pf_maxtail = max(global.__fl_pf_maxtail, tail);
+global.__fl_pf_maxrunner = max(global.__fl_pf_maxrunner, runner);
+if (!global.__fl_skip)
+{
+    global.__fl_pf_maxgap = max(global.__fl_pf_maxgap, now - global.__fl_pf_lasttick);
+    global.__fl_pf_lasttick = now;
+    global.__fl_pf_ticks += 1;
+}
+var w = "";
+if (global.__fl_watchobj >= 0)
+{
+    var wi = instance_find(global.__fl_watchobj, 0);
+    if (wi != noone && variable_instance_exists(wi, global.__fl_watchvar))
+        w = " " + global.__fl_watchvar + "=" + string(variable_instance_get(wi, global.__fl_watchvar));
+}
+if (global.__fl_sndtest > 0)
+    w += " sound test pitch " + string_format(global.__fl_sndpit, 1, 2);
+if (dt > max(25000, 2000000 / __fl_target()))
+{
+    global.__fl_pf_slow += 1;
+    var kind = " tick";
+    if (global.__fl_skip)
+        kind = " -";
+    if (global.__fl_real)
+        kind += " real";
+    else
+        kind += " throwaway";
+    global.__fl_pf_buf += "  slow frame " + string(global.__fl_frame) + kind + ": " + string_format(dt / 1000, 1, 1) + " ms (work " + string_format(work / 1000, 1, 1) + ", rollback " + string_format(rb / 1000, 1, 1) + ", tail " + string_format(tail / 1000, 1, 1) + " of which file write " + string_format(flush / 1000, 1, 1) + ", runner " + string_format(runner / 1000, 1, 1) + ", log " + string(lg) + ")" + w + chr(13) + chr(10);
+}
+if ((now - global.__fl_pf_t) >= 1000000)
+{
+    var secs = (now - global.__fl_pf_t) / 1000000;
+    var nf = max(1, global.__fl_pf_frames);
+    global.__fl_pf_buf += string_format((now - global.__fl_starttime) / 1000000, 1, 1) + " s: fps " + string_format(global.__fl_pf_frames / secs, 1, 0) + ", ticks " + string_format(global.__fl_pf_ticks / secs, 1, 1) + ", slowest frame " + string_format(global.__fl_pf_maxdt / 1000, 1, 1) + " ms, longest tick gap " + string_format(global.__fl_pf_maxgap / 1000, 1, 1) + " ms, work avg " + string_format(global.__fl_pf_sumwork / nf / 1000, 1, 2) + " max " + string_format(global.__fl_pf_maxwork / 1000, 1, 1) + ", rollback avg " + string_format(global.__fl_pf_sumrb / nf / 1000, 1, 2) + " max " + string_format(global.__fl_pf_maxrb / 1000, 1, 1) + ", tail max " + string_format(global.__fl_pf_maxtail / 1000, 1, 1) + " (file write " + string_format(global.__fl_pf_maxflush / 1000, 1, 1) + "), runner max " + string_format(global.__fl_pf_maxrunner / 1000, 1, 1) + ", log max " + string(global.__fl_pf_maxlog) + ", slow frames " + string(global.__fl_pf_slow) + ", instances " + string(instance_count) + ", " + room_get_name(room) + w + chr(13) + chr(10);
+    global.__fl_pf_t = now;
+    __fl_perf_reset();
+    if (global.__fl_pf_lines < 20000)
+    {
+        global.__fl_pf_lines += 1;
+        var f = file_text_open_append("fl_perf.txt");
+        file_text_write_string(f, global.__fl_pf_buf);
+        file_text_close(f);
+    }
+    global.__fl_pf_buf = "";
+    // shown in the next frame's "tail" and the next second's line
+    global.__fl_pf_flush = get_timer() - now;
+    global.__fl_pf_maxflush = global.__fl_pf_flush;
 }
 
 // @@ gml_Script___fl_draw_gui
@@ -1589,6 +1773,245 @@ else
     __fl_mtext(40, 438, "Z/ENTER: REBIND   X/SHIFT: BACK", c_gray, 1);
 }
 __fl_mtext(40, 456, "VERSION " + global.__fl_version, c_dkgray, 1);
+
+// @@ gml_Script___fl_timerfix
+// Ask Windows for 1 ms timer resolution (timeBeginPeriod(1)), the way games normally do. The
+// runner never does, and since Windows 10 2004 (2020) another program can't do it for it: so its
+// Sleep(16) calls last up to 31 ms. One of them paces the thread that streams music from the .ogg
+// files, which then can't keep up with a sound played at high pitch: the rising sound before
+// Asriel's fight (True Pacifist) cuts in and out, in the original game too. Returns a status text.
+//
+// GameMaker 1.4 calls any DLL function it finds by its plain name as cdecl (the caller removes the
+// arguments), and timeBeginPeriod is stdcall (it removes them itself), so it can't be called
+// directly. Instead: read timeGetTime's address from UNDERTALE.exe's import table (the exe has no
+// ASLR, so the slot is at a fixed address), find timeBeginPeriod in the same DLL's export table,
+// and run it on a new thread with the C runtime's _beginthread(timeBeginPeriod, 0, 1): a thread
+// function takes exactly one argument. Memory is read with the C runtime's memcpy (__fl_peek8).
+if (os_type != os_windows)
+    return "not Windows";
+// Wine/Proton: sleeps are precise there already, and its DLLs may not be laid out like Windows'
+if (environment_get_variable("WINEPREFIX") != "" || environment_get_variable("STEAM_COMPAT_DATA_PATH") != "")
+    return "Wine";
+global.__fl_tiny = power(2, -1074);  // a double whose bits are the integer k is k * this (k < 2^52)
+global.__fl_memcpy = external_define("msvcrt.dll", "memcpy", dll_cdecl, ty_string, 2, ty_string, ty_real);
+global.__fl_strstr = external_define("msvcrt.dll", "strstr", dll_cdecl, ty_string, 2, ty_string, ty_real);
+global.__fl_beginthread = external_define("msvcrt.dll", "_beginthread", dll_cdecl, ty_real, 2, ty_real, ty_real);
+if (global.__fl_memcpy < 0 || global.__fl_strstr < 0 || global.__fl_beginthread < 0)
+    return "no C runtime";
+// only the Steam v1.08 UNDERTALE.exe, whose import slot for timeGetTime is at 0x6d842c
+var exe = $400000;
+if (__fl_peek8(exe) != 77 || __fl_peek8(exe + 1) != 90 || __fl_peek32(exe + __fl_peek32(exe + 60) + 8) != $596f3367)
+    return "different UNDERTALE.exe";
+var a = __fl_peek32($6d842c);
+if (a < $10000)
+    return "no timeGetTime import";
+// the start of the DLL: the nearest "MZ" at a 64 KB boundary below timeGetTime
+var base = a - (a mod $10000);
+var tries = 0;
+while (__fl_peek8(base) != 77 || __fl_peek8(base + 1) != 90)
+{
+    base -= $10000;
+    tries += 1;
+    if (tries > 64)
+        return "DLL start not found";
+}
+var nt = base + __fl_peek32(base + 60);
+if (__fl_peek32(nt) != $4550)       // "PE\0\0"
+    return "no PE header";
+var exprva = __fl_peek32(nt + 120);
+var expsize = __fl_peek32(nt + 124);
+var ex = base + exprva;
+var nnames = __fl_peek32(ex + 24);
+var funcs = base + __fl_peek32(ex + 28);
+var names = base + __fl_peek32(ex + 32);
+var ords = base + __fl_peek32(ex + 36);
+var want = "timeBeginPeriod";
+for (var i = 0; i < min(nnames, 4096); i++)
+{
+    var np = base + __fl_peek32(names + (4 * i));
+    // strstr(want, name) returns all of "timeBeginPeriod" only when the name matches from its start
+    if (__fl_peek8(np) == 116 && __fl_peek8(np + 14) == 100 && __fl_peek8(np + 15) == 0 && external_call(global.__fl_strstr, want, np * global.__fl_tiny) == want)
+    {
+        var ord = __fl_peek8(ords + (2 * i)) + (__fl_peek8(ords + (2 * i) + 1) * 256);
+        var rva = __fl_peek32(funcs + (4 * ord));
+        if (rva >= exprva && rva < exprva + expsize)
+            return "timeBeginPeriod is forwarded";
+        external_call(global.__fl_beginthread, (base + rva) * global.__fl_tiny, 1 * global.__fl_tiny);
+        return "on";
+    }
+}
+return "timeBeginPeriod not found";
+
+// @@ gml_Script___fl_peek8
+// One byte of the game's own memory at address argument0, for __fl_timerfix. memcpy(dst, src, n)
+// gets dst as a string's pointer, and src and n as the two halves of one double (src in the low
+// half, n = 1 in the high half).
+var b = string_repeat("x", 2);
+external_call(global.__fl_memcpy, b, ($100000000 + argument0) * global.__fl_tiny);
+// a zero byte ends the string, and string_byte_at gives bytes as signed values
+if (string_length(b) == 0)
+    return 0;
+var v = string_byte_at(b, 1);
+if (v < 0)
+    v += 256;
+return v;
+
+// @@ gml_Script___fl_peek32
+return __fl_peek8(argument0) + (__fl_peek8(argument0 + 1) * $100) + (__fl_peek8(argument0 + 2) * $10000) + (__fl_peek8(argument0 + 3) * $1000000);
+
+// @@ gml_Script___fl_sndtest_start
+// The F7 sound test: the True Pacifist ending's rising sound (or sound argument0), stepped up each
+// tick in __fl_beginstep the way obj_friendscene does it.
+global.__fl_sndasset = argument0;
+audio_stop_all();
+audio_play_sound(argument0, 120, true);
+global.__fl_sndpit = 0.8;
+global.__fl_sndvol = 0.6;
+audio_sound_pitch(argument0, global.__fl_sndpit);
+audio_sound_gain(argument0, global.__fl_sndvol, 0);
+global.__fl_sndtest = 1;
+
+// @@ gml_Script___fl_cmd_frame
+// Test hook (cmdhook=1 in UndertaleFramerate.ini, testing only): lets a test script drive the game
+// without the keyboard. Commands are lines in fl_cmd.txt in the save folder, read and deleted about
+// ten times a second; replies are added to fl_cmd_out.txt. Commands:
+//   tap KEY / hold KEY / release KEY   simulated key presses (z, x, c, up, down, left, right,
+//                                      enter, esc, f1, or a letter or digit)
+//   sound [NAME] / stop                the F7 sound test (or another sound asset), stop all sounds
+//   gain X                             master volume
+//   report                             frame rate, ticks, room, timer resolution fix status
+//   quit                               close the game
+var now = get_timer();
+for (var k = ds_list_size(global.__fl_cmdkeys) - 2; k >= 0; k -= 2)
+{
+    if (now >= ds_list_find_value(global.__fl_cmdkeys, k + 1))
+    {
+        __fl_cmd_setkey(ds_list_find_value(global.__fl_cmdkeys, k), 0);
+        ds_list_delete(global.__fl_cmdkeys, k + 1);
+        ds_list_delete(global.__fl_cmdkeys, k);
+    }
+}
+if (now - global.__fl_cmdpoll < 100000)
+    exit;
+global.__fl_cmdpoll = now;
+if (!file_exists("fl_cmd.txt"))
+    exit;
+var f = file_text_open_read("fl_cmd.txt");
+var n = 0;
+var lines;
+while (!file_text_eof(f))
+{
+    lines[n] = file_text_read_string(f);
+    file_text_readln(f);
+    n += 1;
+}
+file_text_close(f);
+file_delete("fl_cmd.txt");
+for (var i = 0; i < n; i++)
+{
+    var c = string_lower(lines[i]);
+    var sp = string_pos(" ", c);
+    var word = c;
+    var arg = "";
+    if (sp > 0)
+    {
+        word = string_copy(c, 1, sp - 1);
+        arg = string_copy(c, sp + 1, string_length(c) - sp);
+    }
+    if (word == "")
+        continue;
+    var out = "";
+    if (word == "tap" || word == "hold" || word == "release")
+    {
+        var key = __fl_cmd_key(arg);
+        if (key < 0)
+            out = "unknown key";
+        else if (word == "release")
+        {
+            __fl_cmd_setkey(key, 0);
+            out = "released";
+        }
+        else
+        {
+            __fl_cmd_setkey(key, 1);
+            if (word == "tap")
+            {
+                // held for a little over two ticks, so the game sees it whatever the frame rate
+                ds_list_add(global.__fl_cmdkeys, key, now + 80000);
+            }
+            out = "pressed";
+        }
+    }
+    else if (word == "sound")
+    {
+        var snd = mus_f_destroyed3;
+        if (arg != "")
+            snd = asset_get_index(arg);
+        if (snd < 0)
+            out = "no such sound";
+        else
+        {
+            __fl_sndtest_start(snd);
+            out = "playing " + arg;
+        }
+    }
+    else if (word == "stop")
+    {
+        audio_stop_all();
+        global.__fl_sndtest = 0;
+        out = "stopped";
+    }
+    else if (word == "gain")
+    {
+        audio_master_gain(real(arg));
+        out = "master gain " + arg;
+    }
+    else if (word == "report")
+        out = "fps " + string(global.__fl_stat_fps) + ", ticks " + string(global.__fl_stat_tps) + ", " + room_get_name(room) + ", timer fix " + global.__fl_timerstatus;
+    else if (word == "quit")
+        game_end();
+    else
+        out = "unknown command";
+    var o = file_text_open_append("fl_cmd_out.txt");
+    file_text_write_string(o, string(current_time) + " " + lines[i] + ": " + out);
+    file_text_writeln(o);
+    file_text_close(o);
+}
+
+// @@ gml_Script___fl_cmd_setkey
+// Hold (argument1 = 1) or let go of key argument0 for the game: keyboard_check sees it through
+// __fl_kc, and keyboard_check_pressed/released through the carried key events of the next tick.
+// (GameMaker 1.4's keyboard_key_press doesn't change what keyboard_check reports.)
+if (global.__fl_kinject[argument0] == argument1)
+    exit;
+global.__fl_kinject[argument0] = argument1;
+if (argument1)
+    global.__fl_kpend[argument0] = 1;
+else
+    global.__fl_rpend[argument0] = 1;
+
+// @@ gml_Script___fl_cmd_key
+// Key code for a test hook key name, or -1.
+var s = argument0;
+if (s == "z" || s == "x" || s == "c" || (string_length(s) == 1 && string_letters(s) == s) || (string_length(s) == 1 && string_digits(s) == s))
+    return ord(string_upper(s));
+if (s == "up")
+    return vk_up;
+if (s == "down")
+    return vk_down;
+if (s == "left")
+    return vk_left;
+if (s == "right")
+    return vk_right;
+if (s == "enter")
+    return vk_enter;
+if (s == "esc")
+    return vk_escape;
+if (s == "shift")
+    return vk_shift;
+if (s == "f1")
+    return vk_f1;
+return -1;
 
 // @@ gml_Script___fl_val_write
 // Validation log (validate=1 in UndertaleFramerate.ini), written to the game's save folder.

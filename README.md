@@ -47,6 +47,12 @@ runs 30 steps a second, and running it faster speeds the whole game up. The mod 
   setting in `options.ini` (GameMaker's "alternate sync method", which would lock the frame rate to
   your monitor's refresh rate). Uninstalling puts it back.
 
+- **It also fixes a sound bug in the original game.** On Windows 10 (since 2020) and 11, music
+  played at high pitch cuts in and out, most noticeably the rising sound just before Asriel's fight
+  on the True Pacifist route. The mod asks Windows for precise timing the way most games do, which
+  keeps the music stream fed. The full write-up, with recordings, is in
+  [docs/timer-resolution-bug.md](docs/timer-resolution-bug.md).
+
 More detail is in the [developer notes](mod/README.md).
 
 ## Known limits

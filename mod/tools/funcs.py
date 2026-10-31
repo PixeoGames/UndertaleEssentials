@@ -51,7 +51,7 @@ PURE = {
     'sprite_exists', 'background_get_width', 'background_get_height', 'background_exists',
     'surface_get_width', 'surface_get_height', 'surface_exists', 'window_get_width', 'window_get_height',
     'window_get_fullscreen', 'window_get_x', 'window_get_y', 'display_get_width', 'display_get_height',
-    'keyboard_check', 'keyboard_check_direct', 'gamepad_button_check', 'gamepad_axis_value',
+    'keyboard_check_direct', 'gamepad_button_check', 'gamepad_axis_value',
     'gamepad_get_device_count', 'gamepad_is_connected', 'joystick_buttons', 'joystick_check_button',
     'joystick_has_pov', 'joystick_exists', 'joystick_xpos', 'joystick_ypos', 'joystick_direction',
     'joystick_pov', 'mouse_check_button', 'os_is_paused', 'os_get_language', 'os_get_region',
@@ -98,6 +98,8 @@ WRAP = {
 }
 
 KEY_PRESS_FUNCS = {'keyboard_check_pressed': '__fl_kcp', 'keyboard_check_released': '__fl_kcr',
+                   # keys the test hook holds down (testing only)
+                   'keyboard_check': '__fl_kc',
                    # reads the physical key, so the WASD remap needs a wrapper too
                    'keyboard_check_direct': '__fl_kcd'}
 

@@ -5,6 +5,7 @@
 !/README.md
 !/LICENSE
 !/mod/
+!/docs/
 
 # generated from the decompiled game during a build: never publish
 /mod/gen/

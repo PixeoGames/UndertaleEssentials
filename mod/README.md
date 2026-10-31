@@ -44,6 +44,20 @@ below it uneven. The installer sets it to 0 (backup in `options.ini.framerate_mo
 uninstalling puts back). The build also clears the game's own "vsync on" flag; the mod turns vsync
 on from the player's setting.
 
+**Timer resolution (also fixes a bug in the original game):** the runner never asks Windows for
+1 ms timer resolution, and since Windows 10 version 2004 (2020) other programs can't do it for it,
+so every `Sleep(16)` in the runner lasts up to 31 ms. One of those paces the thread that streams
+music from the `.ogg` files. When a game sound plays music at 2 to 3 times its pitch, the stream
+runs dry and cuts out: the rising sound before Asriel's fight (True Pacifist) does this in the
+unmodded game too (32 dropouts in 16 s in a recording, none with the fix). At startup the mod
+calls `timeBeginPeriod(1)` (`__fl_timerfix`). GameMaker 1.4 calls every DLL function found by its
+plain name as cdecl, which crashes on stdcall Windows functions with arguments, so it reads
+`timeGetTime`'s address from UNDERTALE.exe's import table (the exe has no ASLR), finds
+`timeBeginPeriod` in the same DLL's export table, and starts it on a thread with the C runtime's
+`_beginthread`. It only runs on the Steam v1.08 exe (checked by its build timestamp), skips
+Wine/Proton, and gives up without changing anything if something doesn't match. `timerfix=0` in
+`UndertaleFramerate.ini` turns it off. Full write-up: [docs/timer-resolution-bug.md](../docs/timer-resolution-bug.md).
+
 ## How it works
 
 The runner runs at the chosen frame rate (or as fast as it can, with Unlimited). Timing always uses
@@ -126,3 +140,13 @@ save folder). `package.py` makes the tester package in `dist/` and a .zip of it:
 - `trace=obj_name`: log that object's shown and real position, animation and path state every frame
   to `fl_trace.txt`. `trace2=obj_name` with `tracevar=name` adds one variable of a second object.
 - `testbattle=N`: F11 starts battle group N from the overworld (4 = Froggit).
+- `perf=1`: frame timings to `fl_perf.txt` in the save folder: a line per second (frame rate,
+  ticks, slowest frame, longest gap between ticks, time spent in game code and in rollback) and a
+  line for every frame over 25 ms. `watch=obj_name.var` adds one variable to each line (for example
+  `watch=obj_friendscene.con` for the scene step of the True Pacifist ending).
+- `testsound=1`: F7 plays the rising sound from the True Pacifist ending (F7 again stops it).
+- `cmdhook=1`: a test script can drive the game without the keyboard. It writes command lines to
+  `fl_cmd.txt` in the save folder (read and deleted about ten times a second) and reads replies
+  from `fl_cmd_out.txt`: `tap`/`hold`/`release KEY` (held keys go through a `keyboard_check`
+  wrapper, since GameMaker's `keyboard_key_press` doesn't change what `keyboard_check` reports),
+  `sound [NAME]`, `stop`, `gain X`, `report` (frame rate, ticks, room, timer fix status), `quit`.
