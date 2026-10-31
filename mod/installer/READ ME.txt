@@ -43,3 +43,10 @@ Tell the person who sent you this:
 - where you were in the game and what happened,
 - your frame rate setting (F1),
 - a screenshot or short video if you can.
+
+
+LICENSE
+Undertale Framerate Mod, copyright (C) 2026 Pixeo. It is free software under the
+GNU General Public License version 3 or later. The license and the full source
+are in the "files\source" folder.
+Undertale belongs to Toby Fox. This is a fan-made mod, not affiliated with him.

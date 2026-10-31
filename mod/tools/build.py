@@ -1,3 +1,5 @@
+# Undertale Framerate Mod. Copyright (C) 2026 Pixeo.
+# Free software under the GNU GPL version 3 or later: see LICENSE.
 """Builds the Undertale framerate mod.
 
     python mod/tools/build.py [--game DIR] [--out FILE] [--test-save NAME]

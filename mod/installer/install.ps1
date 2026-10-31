@@ -1,3 +1,5 @@
+# Undertale Framerate Mod. Copyright (C) 2026 Pixeo.
+# Free software under the GNU GPL version 3 or later: see LICENSE.
 # Undertale Framerate Mod - installer / uninstaller.
 # Builds data_framerate.win from the player's own data.win using data_framerate.patch, and adds a
 # desktop shortcut that starts it. The only Undertale file it changes is options.ini (one setting,

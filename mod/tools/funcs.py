@@ -1,3 +1,5 @@
+# Undertale Framerate Mod. Copyright (C) 2026 Pixeo.
+# Free software under the GNU GPL version 3 or later: see LICENSE.
 """Classification of GameMaker builtins called by code that can run during a throwaway draw.
 
 PURE: no lasting side effects (math, queries, drawing, render state), or the callee is game

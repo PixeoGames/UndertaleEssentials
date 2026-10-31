@@ -1,3 +1,5 @@
+// Undertale Framerate Mod. Copyright (C) 2026 Pixeo.
+// Free software under the GNU GPL version 3 or later: see LICENSE.
 // Applies the framerate mod to a loaded data.win. Driven by mod/tools/build.py.
 // Environment:
 //   FL_GEN_DIR    folder of generated .gml code entries to import (replacing or creating them)

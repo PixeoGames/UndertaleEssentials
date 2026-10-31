@@ -1,3 +1,5 @@
+// Undertale Framerate Mod. Copyright (C) 2026 Pixeo.
+// Free software under the GNU GPL version 3 or later: see LICENSE.
 // Stage-0 probe: logs GameMaker 1.4 runner event ordering to a file in the save dir.
 using System.IO;
 using System.Linq;

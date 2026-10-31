@@ -81,6 +81,14 @@ The [developer notes](mod/README.md) cover the details.
 
 ## License and disclaimer
 
-The mod's code is under the [MIT license](LICENSE). Undertale belongs to Toby Fox; this is a fan-made
-mod, not affiliated with him, and you need your own copy of the game. This repository contains only
-the mod's own code, with no game files or decompiled game code.
+Undertale Framerate Mod, copyright (C) 2026 Pixeo.
+
+The mod's code is under the [GNU General Public License v3.0](LICENSE) or any later version. In
+short: you can use, change and share it, including your own versions of the mod, as long as they
+keep the credit and license notices, say what you changed, and stay open source under the same
+license (with their full source available). The license text is what counts; this summary isn't
+part of it.
+
+Undertale belongs to Toby Fox; this is a fan-made mod, not affiliated with him, and you need your
+own copy of the game. This repository contains only the mod's own code, with no game files or
+decompiled game code.

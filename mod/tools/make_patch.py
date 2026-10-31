@@ -1,3 +1,5 @@
+# Undertale Framerate Mod. Copyright (C) 2026 Pixeo.
+# Free software under the GNU GPL version 3 or later: see LICENSE.
 """Makes a binary patch that turns the original data.win into the modded one.
 
     python make_patch.py <original data.win> <modded .win> <out .patch>

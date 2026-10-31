@@ -1,3 +1,5 @@
+// Undertale Framerate Mod. Copyright (C) 2026 Pixeo.
+// Free software under the GNU GPL version 3 or later: see LICENSE.
 // Undertale framerate mod: runtime.
 // Each "// @@ <code entry name>" line starts a new code entry; the build splits this file on them.
 //

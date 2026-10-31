@@ -1,3 +1,5 @@
+// Undertale Framerate Mod. Copyright (C) 2026 Pixeo.
+// Free software under the GNU GPL version 3 or later: see LICENSE.
 // Dumps object/room/variable metadata to JSON for the static analysis.
 using System.IO;
 using System.Linq;
