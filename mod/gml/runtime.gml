@@ -1,6 +1,6 @@
-// Undertale Framerate Mod. Copyright (C) 2026 Pixeo.
+// Undertale Essentials. Copyright (C) 2026 Pixeo.
 // Free software under the GNU GPL version 3 or later: see LICENSE.
-// Undertale framerate mod: runtime.
+// Undertale Essentials: runtime.
 // Each "// @@ <code entry name>" line starts a new code entry; the build splits this file on them.
 //
 // How it works, in short: logic still runs 30 times a second ("ticks"). The runner itself runs
@@ -82,6 +82,7 @@ for (var k = 255; k >= 0; k--)
     global.__fl_rpend[k] = 0;
     global.__fl_rwin[k] = 0;
     global.__fl_kinject[k] = 0;
+    global.__fl_cmdtap[k] = 0;
 }
 // keys whose pressed/released state is carried over to the frames that run game code
 var n = 0;
@@ -963,6 +964,10 @@ return keyboard_check_pressed(argument0) || global.__fl_kpend[argument0];
 // keyboard_check for game code: also true for a key the test hook holds down (__fl_cmd_frame).
 return keyboard_check(argument0) || global.__fl_kinject[argument0];
 
+// @@ gml_Script___fl_mkp
+// keyboard_check_pressed for the mod's own menu: also true for a key the test hook tapped this frame.
+return keyboard_check_pressed(argument0) || global.__fl_cmdtap[argument0];
+
 // @@ gml_Script___fl_kcd
 // keyboard_check_direct reads the physical key, which the extra-key remap doesn't cover.
 if (keyboard_check_direct(argument0))
@@ -1149,6 +1154,11 @@ if (global.__fl_perf)
 if (global.__fl_cmdhook)
     __fl_cmd_frame();
 __fl_menu_input();
+if (global.__fl_cmdhook)
+{
+    for (var k = 0; k < 256; k++)
+        global.__fl_cmdtap[k] = 0;
+}
 __fl_draw_gui();
 __fl_decide_next();
 __fl_limit();
@@ -1359,7 +1369,7 @@ else
     if ((get_timer() - global.__fl_starttime) < 12000000)
     {
         // top left, under the counter: the bottom of the title screens has the copyright line
-        var h = "Framerate mod " + global.__fl_version + "  -  press F1 for settings";
+        var h = "Undertale Essentials " + global.__fl_version + "  -  press F1 for settings";
         var hy = 4;
         if (global.__fl_overlay)
             hy = 22;
@@ -1367,7 +1377,7 @@ else
         __fl_mtext(4, hy, h, c_yellow, 1);
     }
     if (instance_exists(obj_settingsmenu))
-        __fl_mtext(40, 420, "F1: FRAMERATE MOD", c_yellow, 2);
+        __fl_mtext(40, 420, "F1: ESSENTIALS", c_yellow, 2);
 }
 if (global.__fl_font >= 0)
     draw_set_font(global.__fl_font);
@@ -1415,7 +1425,7 @@ if (global.__fl_menu == 2)
     }
     exit;
 }
-var f1 = keyboard_check_pressed(vk_f1);
+var f1 = __fl_mkp(vk_f1);
 if (global.__fl_menu == 0)
 {
     if (f1)
@@ -1491,12 +1501,12 @@ if (global.__fl_mscreen == 3)
     }
     exit;
 }
-var up = keyboard_check_pressed(vk_up);
-var down = keyboard_check_pressed(vk_down);
-var left = keyboard_check_pressed(vk_left);
-var right = keyboard_check_pressed(vk_right);
-var ok = keyboard_check_pressed(ord("Z")) || keyboard_check_pressed(vk_enter);
-var back = keyboard_check_pressed(ord("X")) || keyboard_check_pressed(vk_shift) || keyboard_check_pressed(vk_escape);
+var up = __fl_mkp(vk_up);
+var down = __fl_mkp(vk_down);
+var left = __fl_mkp(vk_left);
+var right = __fl_mkp(vk_right);
+var ok = __fl_mkp(ord("Z")) || __fl_mkp(vk_enter);
+var back = __fl_mkp(ord("X")) || __fl_mkp(vk_shift) || __fl_mkp(vk_escape);
 if (f1)
 {
     __fl_menu_close();
@@ -1653,7 +1663,7 @@ var sc = global.__fl_mscreen;
 var s = global.__fl_s;
 if (sc == 0)
 {
-    __fl_mtext_c(320, 16, "FRAMERATE MOD", c_white, 4);
+    __fl_mtext_c(320, 16, "ESSENTIALS", c_white, 4);
     var cap = string(global.__fl_fps) + " FPS";
     if (global.__fl_unlimited)
         cap = "(UNLIMITED)";
@@ -1988,7 +1998,10 @@ if (global.__fl_kinject[argument0] == argument1)
     exit;
 global.__fl_kinject[argument0] = argument1;
 if (argument1)
+{
     global.__fl_kpend[argument0] = 1;
+    global.__fl_cmdtap[argument0] = 1;
+}
 else
     global.__fl_rpend[argument0] = 1;
 

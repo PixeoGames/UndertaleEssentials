@@ -1,6 +1,6 @@
-# Undertale Framerate Mod. Copyright (C) 2026 Pixeo.
+# Undertale Essentials. Copyright (C) 2026 Pixeo.
 # Free software under the GNU GPL version 3 or later: see LICENSE.
-"""Builds the tester package: dist/UndertaleFramerateMod-<version>/ and a .zip of it.
+"""Builds the tester package: dist/UndertaleEssentials-<version>/ and a .zip of it.
 
     python mod/tools/package.py [--game DIR]
 
@@ -17,7 +17,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 MOD = os.path.dirname(HERE)
 ROOT = os.path.dirname(MOD)
 VERSION = '0.1-test'
-NAME = f'UndertaleFramerateMod-{VERSION}'
+NAME = f'UndertaleEssentials-{VERSION}'
 
 
 def main():

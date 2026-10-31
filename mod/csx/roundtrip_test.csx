@@ -1,4 +1,4 @@
-// Undertale Framerate Mod. Copyright (C) 2026 Pixeo.
+// Undertale Essentials. Copyright (C) 2026 Pixeo.
 // Free software under the GNU GPL version 3 or later: see LICENSE.
 // Fidelity test: decompile every code entry and recompile it unchanged, then compare disassembly.
 using System.IO;

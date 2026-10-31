@@ -1,11 +1,11 @@
-# Undertale framerate mod (developer notes)
+# Undertale Essentials (developer notes)
 
 Plays Undertale (v1.08, Windows) at 60, 120, up to 360 frames per second (or unlimited) without
 speeding the game up. Game logic still runs at the original 30 ticks per second. The extra frames
 show movement part-way between ticks, so walking, the camera, your SOUL and most bullets move smoothly.
 
 Players: see `installer/READ ME.txt` (shipped at the top of the tester package). The installer
-builds `data_framerate.win` in the Undertale folder and puts an "Undertale (Framerate Mod)" shortcut
+builds `data_framerate.win` in the Undertale folder and puts an "Undertale Essentials" shortcut
 on the desktop.
 
 ## Playing a local build

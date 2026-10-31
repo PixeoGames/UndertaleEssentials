@@ -1,7 +1,9 @@
-UNDERTALE FRAMERATE MOD  -  test version 0.1
-=============================================
+UNDERTALE ESSENTIALS  -  test version 0.1
+==========================================
 
-Plays Undertale at 60, 120 or more frames per second, at the normal game speed.
+Undertale kept as close to the original as possible, with only the essentials
+added: 60, 120 or more frames per second at the normal game speed, extra
+controls, and fixes for bugs that newer versions of Windows brought out.
 
 THIS IS AN EARLY TEST VERSION. Expect bugs and issues.
 
@@ -18,7 +20,7 @@ INSTALL
 
 PLAY
 1. Make sure Steam is running.
-2. Double-click  "Undertale (Framerate Mod)"  on your desktop.
+2. Double-click  "Undertale Essentials"  on your desktop.
 
 In game:
 - F1 opens the mod settings: frame rate, VSync, controls.
@@ -46,7 +48,7 @@ Tell the person who sent you this:
 
 
 LICENSE
-Undertale Framerate Mod, copyright (C) 2026 Pixeo. It is free software under the
+Undertale Essentials, copyright (C) 2026 Pixeo. It is free software under the
 GNU General Public License version 3 or later. The license and the full source
 are in the "files\source" folder.
 Undertale belongs to Toby Fox. This is a fan-made mod, not affiliated with him.

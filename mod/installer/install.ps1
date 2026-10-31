@@ -1,6 +1,6 @@
-# Undertale Framerate Mod. Copyright (C) 2026 Pixeo.
+# Undertale Essentials. Copyright (C) 2026 Pixeo.
 # Free software under the GNU GPL version 3 or later: see LICENSE.
-# Undertale Framerate Mod - installer / uninstaller.
+# Undertale Essentials - installer / uninstaller.
 # Builds data_framerate.win from the player's own data.win using data_framerate.patch, and adds a
 # desktop shortcut that starts it. The only Undertale file it changes is options.ini (one setting,
 # with a backup that uninstalling puts back): GameMaker's AlternateSyncMethod=1 locks every frame to
@@ -13,7 +13,9 @@ $Here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $PatchPath = Join-Path $Here 'data_framerate.patch'
 $Version = '0.1 (early test)'
 $ModFile = 'data_framerate.win'
-$Shortcut = 'Undertale (Framerate Mod).lnk'
+$Shortcut = 'Undertale Essentials.lnk'
+# file names from when the mod was called "Undertale Framerate Mod", kept so earlier installs
+# still reinstall and uninstall cleanly
 $Manifest = 'framerate_mod_installed.txt'
 $OptionsBackup = 'options.ini.framerate_mod_backup'
 
@@ -100,7 +102,7 @@ function Apply-Patch([string]$origPath, [string]$outPath, $patch) {
 }
 
 Say ''
-Say "  UNDERTALE FRAMERATE MOD  $Version" 'Yellow'
+Say "  UNDERTALE ESSENTIALS  $Version" 'Yellow'
 Say '  Early test version: expect bugs and issues.' 'Yellow'
 Say ''
 
@@ -198,18 +200,31 @@ $sc.TargetPath = $exe
 $sc.Arguments = "-game $ModFile"
 $sc.WorkingDirectory = $GameDir
 $sc.IconLocation = "$exe,0"
-$sc.Description = 'Undertale with the framerate mod'
+$sc.Description = 'Undertale with Undertale Essentials'
 $sc.Save()
 $created += "shortcut=$lnk"
-# installing again keeps the record of what an earlier install added
+# installing again keeps the record of what an earlier install added, except a shortcut it made
+# under another name (the mod's earlier name), which this one replaces
 $mf = Join-Path $GameDir $Manifest
-if (Test-Path $mf) { $created = @(Get-Content $mf) + $created | Select-Object -Unique }
+if (Test-Path $mf) {
+    $old = @(Get-Content $mf)
+    $kept = @()
+    foreach ($name in $old) {
+        if ($name -like 'shortcut=*.lnk' -and $name -ne "shortcut=$lnk") {
+            $p = $name.Substring(9)
+            if (Test-Path -LiteralPath $p) { Remove-Item -LiteralPath $p; Say 'Replaced the old desktop shortcut' }
+        } else {
+            $kept += $name
+        }
+    }
+    $created = $kept + $created | Select-Object -Unique
+}
 [System.IO.File]::WriteAllLines($mf, [string[]]$created)
 
 Say ''
 Say 'Installed!' 'Green'
 Say ''
 Say 'To play: make sure Steam is running, then double-click' 'White'
-Say '  "Undertale (Framerate Mod)" on your desktop.' 'Yellow'
+Say '  "Undertale Essentials" on your desktop.' 'Yellow'
 Say 'In game, press F1 for the mod settings.' 'White'
 exit 0

@@ -1,6 +1,6 @@
-# Undertale Framerate Mod. Copyright (C) 2026 Pixeo.
+# Undertale Essentials. Copyright (C) 2026 Pixeo.
 # Free software under the GNU GPL version 3 or later: see LICENSE.
-"""Source-to-source transform of Undertale's decompiled GML for the framerate mod.
+"""Source-to-source transform of Undertale's decompiled GML for Undertale Essentials.
 
 For every code entry that can run while a throwaway (interpolated) frame is drawn, this:
   * inserts a rollback barrier before each write to a non-local variable, so the

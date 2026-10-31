@@ -1,6 +1,6 @@
-// Undertale Framerate Mod. Copyright (C) 2026 Pixeo.
+// Undertale Essentials. Copyright (C) 2026 Pixeo.
 // Free software under the GNU GPL version 3 or later: see LICENSE.
-// Applies the framerate mod to a loaded data.win. Driven by mod/tools/build.py.
+// Applies Undertale Essentials to a loaded data.win. Driven by mod/tools/build.py.
 // Environment:
 //   FL_GEN_DIR    folder of generated .gml code entries to import (replacing or creating them)
 //   FL_ROOM_SPEED room speed to store in every room (the runtime also sets it each room)
@@ -15,7 +15,7 @@ uint roomSpeed = uint.Parse(Environment.GetEnvironmentVariable("FL_ROOM_SPEED") 
 string saveName = Environment.GetEnvironmentVariable("FL_SAVE_NAME");
 
 if (Data.GameObjects.ByName("obj___fl_first") != null)
-    throw new Exception("This data file already has the framerate mod applied.");
+    throw new Exception("This data file already has Undertale Essentials applied.");
 
 UndertaleGameObject MakeObj(string name, bool persistent, int depth, bool visible)
 {

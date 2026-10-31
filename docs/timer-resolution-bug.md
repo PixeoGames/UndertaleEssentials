@@ -3,7 +3,7 @@
 **Short version:** on current Windows 10 and 11, the original Undertale (v1.08, Steam) cuts in and
 out whenever it plays music at a high pitch, most noticeably during the rising sound just before
 Asriel's fight on the True Pacifist route. The cause is how Windows has handled sleep timing since
-2020, combined with how the GameMaker runner streams music. The framerate mod fixes it.
+2020, combined with how the GameMaker runner streams music. Undertale Essentials fixes it.
 
 ![Waveforms of the rising sound before and after the fix](images/timer-bug-waveforms.png)
 
@@ -76,7 +76,7 @@ The runner's frame limiter also sleeps. With Undertale's shipped settings it tim
 monitor's refresh instead (`AlternateSyncMethod=1` in `options.ini`), so the game runs at its
 normal 30 frames per second. With `AlternateSyncMethod=0` it uses `Sleep`, and on current Windows
 the unmodded game runs at **23.4 frames per second instead of 30**: the whole game plays at about
-78% speed. The framerate mod uses its own frame limiter, so it isn't affected.
+78% speed. Undertale Essentials uses its own frame limiter, so it isn't affected.
 
 ## Measurements
 
@@ -89,7 +89,7 @@ within the 16 seconds of the sound.
 |---|---|---|
 | Original game, shipped settings | 44 dropouts, 543 ms of silence | |
 | Original game, `AlternateSyncMethod=0` | 32 dropouts, 444 ms of silence | 0 |
-| Framerate mod | 50 dropouts, 648 ms of silence | 0 |
+| Undertale Essentials | 50 dropouts, 648 ms of silence | 0 |
 
 Frame rate of the unmodded game's own limiter, over 300 frames:
 

@@ -1,4 +1,4 @@
-# Undertale Framerate Mod. Copyright (C) 2026 Pixeo.
+# Undertale Essentials. Copyright (C) 2026 Pixeo.
 # Free software under the GNU GPL version 3 or later: see LICENSE.
 """Classification of GameMaker builtins called by code that can run during a throwaway draw.
 

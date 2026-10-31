@@ -1,4 +1,4 @@
-# Undertale Framerate Mod
+# Undertale Essentials
 
 > [!CAUTION]
 > ## Early test version: use at your own risk
@@ -18,7 +18,13 @@
 > what your frame rate setting was. The mod is provided as is, with no warranty (see the
 > [license](LICENSE)).
 
-Play Undertale at 60, 120, 144 fps or more, at the game's normal speed.
+Undertale kept as close to the original as possible, with only the essentials added: answers to a
+few of the most common complaints, and fixes for bugs that newer versions of Windows brought out
+in the unchanged game. The story, art, music and balance stay exactly as they were.
+
+- **Smooth frame rates:** 60, 120, 144 fps or more, at the game's normal speed.
+- **Extra controls:** W A S D and J K L (rebindable) alongside the normal keys.
+- **Fixes:** music no longer cuts out at high pitch on Windows 10 and 11 (more below).
 
 ## What you need
 
@@ -28,9 +34,9 @@ Play Undertale at 60, 120, 144 fps or more, at the game's normal speed.
 
 ## Install
 
-1. Download `UndertaleFramerateMod-0.1-test.zip` from [Releases](../../releases) and extract it.
+1. Download `UndertaleEssentials-0.1-test.zip` from [Releases](../../releases) and extract it.
 2. Double-click `Install.bat`. It finds Undertale by itself; press Enter.
-3. Play with the new **Undertale (Framerate Mod)** shortcut on your desktop (Steam must be running).
+3. Play with the new **Undertale Essentials** shortcut on your desktop (Steam must be running).
 
 Starting Undertale from Steam still plays the normal game, and `Uninstall.bat` removes everything the
 installer added. The mod uses your normal save file, so back up `%LOCALAPPDATA%\UNDERTALE` first.
@@ -96,7 +102,7 @@ The [developer notes](mod/README.md) cover the details.
 
 ## License and disclaimer
 
-Undertale Framerate Mod, copyright (C) 2026 Pixeo.
+Undertale Essentials, copyright (C) 2026 Pixeo.
 
 The mod's code is under the [GNU General Public License v3.0](LICENSE) or any later version. In
 short: you can use, change and share it, including your own versions of the mod, as long as they
