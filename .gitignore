@@ -6,6 +6,7 @@
 !/LICENSE
 !/mod/
 !/docs/
+!/.github/
 
 # generated from the decompiled game during a build: never publish
 /mod/gen/

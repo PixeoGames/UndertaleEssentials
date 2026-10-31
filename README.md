@@ -14,8 +14,8 @@
 > safe, and back it up again before big moments in the game. The mod shares its saves with the
 > normal game.
 >
-> If something breaks, please [open an issue](../../issues) and say where you were in the game and
-> what your frame rate setting was. The mod is provided as is, with no warranty (see the
+> If something breaks, please [report it](../../issues/new/choose): the bug report form asks for
+> what's needed. The mod is provided as is, with no warranty (see the
 > [license](LICENSE)).
 
 Undertale kept as close to the original as possible, with only the essentials added: answers to a
@@ -34,9 +34,11 @@ in the unchanged game. The story, art, music and balance stay exactly as they we
 
 ## Install
 
-1. Download `UndertaleEssentials-0.2-test.zip` from [Releases](../../releases) and extract it.
-2. Double-click `Install.bat`. It finds Undertale by itself; press Enter.
-3. Play with the new **Undertale Essentials** shortcut on your desktop (Steam must be running).
+1. Download `UndertaleEssentials-0.3-test.zip` from [Releases](../../releases) and extract it.
+2. Double-click `Install.bat`. A window opens and finds Undertale by itself.
+3. Click **Back up my saves**, then **Install**.
+4. Play with the new **Undertale Essentials** shortcut on your desktop, or the window's **Play**
+   button (Steam must be running).
 
 Starting Undertale from Steam still plays the normal game, and `Uninstall.bat` removes everything the
 installer added. The mod uses your normal save file, so back up `%LOCALAPPDATA%\UNDERTALE` first.

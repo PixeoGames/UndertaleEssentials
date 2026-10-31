@@ -134,7 +134,7 @@ save folder). `package.py` makes the tester package in `dist/` and a .zip of it:
 | `mod/tools/package.py` | Builds the tester package |
 | `mod/gml/runtime.gml` | The runtime: frame scheduling, interpolation, rollback, input, settings menu |
 | `mod/csx/build.csx` | UndertaleModTool script: imports code, adds the gates and controller objects |
-| `mod/installer/` | Installer script, .bat wrappers and the player READ ME |
+| `mod/installer/` | Installer: `setup.ps1` (the window `Install.bat` opens), `install.ps1` (the install and uninstall work, also usable from the console, as `Uninstall.bat` does), and the player READ ME |
 | `mod/gen/` | Generated code from the last build (contains decompiled game code: not shipped) |
 
 ### Testing aids (`UndertaleFramerate.ini` in the game folder)

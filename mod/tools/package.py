@@ -16,7 +16,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 MOD = os.path.dirname(HERE)
 ROOT = os.path.dirname(MOD)
-VERSION = '0.2-test'
+VERSION = '0.3-test'
 NAME = f'UndertaleEssentials-{VERSION}'
 
 
@@ -40,7 +40,8 @@ def main():
     inst = os.path.join(MOD, 'installer')
     for f in ('Install.bat', 'Uninstall.bat', 'READ ME.txt'):
         shutil.copy2(os.path.join(inst, f), os.path.join(out, f))
-    shutil.copy2(os.path.join(inst, 'install.ps1'), os.path.join(files, 'install.ps1'))
+    for f in ('install.ps1', 'setup.ps1'):
+        shutil.copy2(os.path.join(inst, f), os.path.join(files, f))
 
     # source: the mod itself, without generated code (decompiled game code) or caches
     src = os.path.join(files, 'source', 'mod')

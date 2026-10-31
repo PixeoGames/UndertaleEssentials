@@ -1,4 +1,4 @@
-UNDERTALE ESSENTIALS  -  test version 0.2
+UNDERTALE ESSENTIALS  -  test version 0.3
 ==========================================
 
 Undertale kept as close to the original as possible, with only the essentials
@@ -14,8 +14,9 @@ INSTALL
 1. Unzip this first: right-click the zip file > Extract All.
 2. In the unzipped folder, double-click  Install.bat
    (If a blue "Windows protected your PC" box appears: click "More info", then "Run anyway".)
-3. It finds Undertale by itself. Press Enter.
-4. When it says "Installed!", press any key to close the window.
+3. A window opens. It finds your Undertale folder by itself (if not, click Browse...).
+4. Click "Back up my saves" first: it copies your saves to Documents\Undertale save backups.
+5. Click Install. When it says "Installed!", you can close the window, or click Play.
 
 
 PLAY
@@ -26,9 +27,9 @@ In game:
 - F1 opens the mod settings: frame rate, VSync, controls.
 - W A S D move, J = confirm, K = cancel, L = menu. The normal keys work too.
 
-The mod uses your normal Undertale save. To be safe, back it up first: paste
-%LOCALAPPDATA%\UNDERTALE  into the File Explorer address bar and copy that folder
-somewhere safe.
+The mod uses your normal Undertale save. Back it up first: the installer's
+"Back up my saves" button does it, or paste  %LOCALAPPDATA%\UNDERTALE  into the File
+Explorer address bar and copy that folder somewhere safe.
 
 Starting Undertale from Steam still plays the normal, unmodded game.
 
@@ -37,11 +38,13 @@ above your monitor's refresh rate. Uninstalling puts it back.
 
 
 UNINSTALL
-Double-click  Uninstall.bat  and press Enter. Your saves are kept.
+Open Install.bat again and click Uninstall (or double-click  Uninstall.bat  and press
+Enter). Your saves are kept.
 
 
 FOUND A BUG?
-Tell the person who sent you this:
+Report it on the mod's GitHub page (Issues > New issue > Bug report), or tell the
+person who sent you this:
 - where you were in the game and what happened,
 - your frame rate setting (F1),
 - a screenshot or short video if you can.

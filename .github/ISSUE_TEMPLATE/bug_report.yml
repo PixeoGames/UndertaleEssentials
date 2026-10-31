@@ -1,0 +1,85 @@
+name: Bug report
+description: Something looks, sounds or behaves wrong with Undertale Essentials, or the installer has a problem.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for testing! Undertale Essentials is an early test version, so reports like this help a lot.
+        If the problem could have damaged your save, please say so below.
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What went wrong, and what you expected instead (how the original game does it, if you know).
+    validations:
+      required: true
+
+  - type: textarea
+    id: where
+    attributes:
+      label: Where in the game?
+      description: The area, scene or fight, and what you were doing (for example "Snowdin, first Papyrus puzzle, walking left").
+      placeholder: Area, scene or fight, and what you were doing
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Mod version
+      description: Shown at the bottom of the F1 menu, and in the installer window (for example 0.3).
+    validations:
+      required: true
+
+  - type: input
+    id: framerate
+    attributes:
+      label: Frame rate setting
+      description: From the F1 menu, for example "Unlimited", "144 cap", "60 cap with VSync". Smooth Motion on or off?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: system
+    attributes:
+      label: System
+      options:
+        - Windows 11
+        - Windows 10
+        - Steam Deck or Linux (Proton)
+        - Something else (say below)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: display
+    attributes:
+      label: Windowed or fullscreen?
+      options:
+        - Windowed
+        - Fullscreen
+        - Not sure
+    validations:
+      required: false
+
+  - type: textarea
+    id: media
+    attributes:
+      label: Screenshots, clips or files
+      description: |
+        Drag images or short videos here. For installer problems, attach the file
+        `%TEMP%\UndertaleEssentials_setup_error.txt` if the installer mentioned it.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before sending
+      options:
+        - label: It doesn't happen when I start Undertale normally from Steam (without the mod), or I haven't checked.
+          required: false
+        - label: My save was backed up, or nothing happened to my save.
+          required: false

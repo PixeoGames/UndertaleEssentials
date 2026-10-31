@@ -6,12 +6,13 @@
 # with a backup that uninstalling puts back): GameMaker's AlternateSyncMethod=1 locks every frame to
 # the monitor's refresh, which caps the mod at the refresh rate and makes lower caps uneven.
 #   install.ps1 [-GameDir <Undertale folder>] [-Uninstall] [-ShortcutDir <folder, default: desktop>]
-param([string]$GameDir = '', [switch]$Uninstall, [string]$ShortcutDir = '')
+# setup.ps1 (the installer window) loads it with -Library and calls Install-Mod / Uninstall-Mod.
+param([string]$GameDir = '', [switch]$Uninstall, [string]$ShortcutDir = '', [switch]$Library)
 
 $ErrorActionPreference = 'Stop'
-$Here = Split-Path -Parent $MyInvocation.MyCommand.Path
+$Here = $PSScriptRoot
 $PatchPath = Join-Path $Here 'data_framerate.patch'
-$Version = '0.2 (early test)'
+$Version = '0.3 (early test)'
 $ModFile = 'data_framerate.win'
 $Shortcut = 'Undertale Essentials.lnk'
 # file names from when the mod was called "Undertale Framerate Mod", kept so earlier installs
@@ -19,7 +20,12 @@ $Shortcut = 'Undertale Essentials.lnk'
 $Manifest = 'framerate_mod_installed.txt'
 $OptionsBackup = 'options.ini.framerate_mod_backup'
 
-function Say([string]$text, [string]$color = 'Gray') { Write-Host $text -ForegroundColor $color }
+# The installer window sets these: $Log receives each message, $Pump keeps the window responsive.
+$script:Log = $null
+$script:Pump = $null
+function Say([string]$text, [string]$color = 'Gray') {
+    if ($script:Log) { & $script:Log $text $color } else { Write-Host $text -ForegroundColor $color }
+}
 
 function Find-Undertale {
     $found = @()
@@ -68,7 +74,10 @@ function Apply-Patch([string]$origPath, [string]$outPath, $patch) {
         $ds = [System.IO.Compression.DeflateStream]::new($ms, [System.IO.Compression.CompressionMode]::Decompress)
         $br = [System.IO.BinaryReader]::new($ds)
         $buf = [byte[]]::new(1048576)
+        $ops = 0
         while ($true) {
+            $ops += 1
+            if ($script:Pump -and ($ops % 200) -eq 0) { & $script:Pump }
             $t = $ds.ReadByte()
             if ($t -lt 0) { break }
             if ($t -eq 67) {
@@ -101,23 +110,14 @@ function Apply-Patch([string]$origPath, [string]$outPath, $patch) {
     }
 }
 
-Say ''
-Say "  UNDERTALE ESSENTIALS  $Version" 'Yellow'
-Say '  Early test version: expect bugs and issues.' 'Yellow'
-Say ''
+function Test-Installed([string]$GameDir) { Test-Path (Join-Path $GameDir $Manifest) }
 
-if ($GameDir -eq '') { $GameDir = Ask-GameDir }
-if (-not (Test-Path (Join-Path $GameDir 'UNDERTALE.exe'))) {
-    Say "UNDERTALE.exe isn't in that folder: $GameDir" 'Red'
-    Say 'Nothing was changed.' 'Red'
-    exit 1
-}
-
-if ($Uninstall) {
+function Uninstall-Mod([string]$GameDir) {
+    # Removes what the install record lists and puts the original options.ini back. $true when done.
     $mf = Join-Path $GameDir $Manifest
     if (-not (Test-Path $mf)) {
         Say 'The mod is not installed in that folder (no install record found). Nothing was changed.' 'Yellow'
-        exit 0
+        return $false
     }
     foreach ($name in (Get-Content $mf)) {
         if ($name -like 'shortcut=*.lnk') {
@@ -137,90 +137,113 @@ if ($Uninstall) {
     Remove-Item -LiteralPath $mf
     Say ''
     Say 'Uninstalled. Undertale is back to how it was, and your saves are untouched.' 'Green'
-    exit 0
+    return $true
 }
 
-if (-not (Test-Path $PatchPath)) {
-    Say "Can't find the mod's files. Unzip the whole folder first (right-click the zip > Extract All)," 'Red'
-    Say 'then run Install.bat from the unzipped folder. Nothing was changed.' 'Red'
-    exit 1
-}
-$patch = [System.IO.File]::ReadAllBytes($PatchPath)
-$magic = [System.Text.Encoding]::ASCII.GetString($patch, 0, 11)
-if ($magic -ne "UTFLPATCH1`n") { Say 'The patch file is damaged.' 'Red'; exit 1 }
-$wantOrig = (($patch[11..30] | ForEach-Object { $_.ToString('x2') }) -join '')
-$wantNew = (($patch[31..50] | ForEach-Object { $_.ToString('x2') }) -join '')
+function Install-Mod([string]$GameDir, [string]$ShortcutDir = '') {
+    # Builds data_framerate.win, sets options.ini, adds the shortcut and the install record.
+    # $true when done; on a problem it says why, and nothing is changed.
+    if (-not (Test-Path $PatchPath)) {
+        Say "Can't find the mod's files. Unzip the whole folder first (right-click the zip > Extract All)," 'Red'
+        Say 'then run Install.bat from the unzipped folder. Nothing was changed.' 'Red'
+        return $false
+    }
+    $patch = [System.IO.File]::ReadAllBytes($PatchPath)
+    $magic = [System.Text.Encoding]::ASCII.GetString($patch, 0, 11)
+    if ($magic -ne "UTFLPATCH1`n") { Say 'The patch file is damaged.' 'Red'; return $false }
+    $wantOrig = (($patch[11..30] | ForEach-Object { $_.ToString('x2') }) -join '')
+    $wantNew = (($patch[31..50] | ForEach-Object { $_.ToString('x2') }) -join '')
 
-$dataWin = Join-Path $GameDir 'data.win'
-Say 'Checking your data.win...'
-if (-not (Test-Path $dataWin) -or (Sha1 $dataWin) -ne $wantOrig) {
-    Say ''
-    Say "This mod needs the Steam version of Undertale (v1.08), and this folder's data.win" 'Red'
-    Say "doesn't match it. If Steam has an update pending, update and try again." 'Red'
+    $dataWin = Join-Path $GameDir 'data.win'
+    Say 'Checking your data.win...'
+    if (-not (Test-Path $dataWin) -or (Sha1 $dataWin) -ne $wantOrig) {
+        Say ''
+        Say "This mod needs the Steam version of Undertale (v1.08), and this folder's data.win" 'Red'
+        Say "doesn't match it. If Steam has an update pending, update and try again." 'Red'
+        Say 'Nothing was changed.' 'Red'
+        return $false
+    }
+
+    $target = Join-Path $GameDir $ModFile
+    $tmp = "$target.tmp"
+    Say 'Building data_framerate.win from your data.win (this takes a few seconds)...'
+    Apply-Patch $dataWin $tmp $patch
+    if ((Sha1 $tmp) -ne $wantNew) {
+        Remove-Item -LiteralPath $tmp
+        Say 'The result did not check out, so it was not installed. Nothing was changed.' 'Red'
+        return $false
+    }
+    Move-Item -LiteralPath $tmp -Destination $target -Force
+    $created = @($ModFile)
+
+    # options.ini: turn off GameMaker's alternate sync method (see the top of this file). The backup is
+    # made once, so installing again never overwrites the original.
+    $opt = Join-Path $GameDir 'options.ini'
+    if (Test-Path -LiteralPath $opt) {
+        $text = [System.IO.File]::ReadAllText($opt)
+        if ($text -match '(?m)^AlternateSyncMethod=1\s*$') {
+            $ob = Join-Path $GameDir $OptionsBackup
+            if (-not (Test-Path -LiteralPath $ob)) { Copy-Item -LiteralPath $opt -Destination $ob }
+            [System.IO.File]::WriteAllText($opt, ($text -replace '(?m)^AlternateSyncMethod=1', 'AlternateSyncMethod=0'))
+        }
+    }
+
+    # Lets UNDERTALE.exe start directly (from the shortcut) without Steam restarting it.
+    $appid = Join-Path $GameDir 'steam_appid.txt'
+    if (-not (Test-Path $appid)) {
+        [System.IO.File]::WriteAllText($appid, '391540')
+        $created += 'steam_appid.txt'
+    }
+
+    if ($ShortcutDir -eq '') { $ShortcutDir = [Environment]::GetFolderPath('Desktop') }
+    $lnk = Join-Path $ShortcutDir $Shortcut
+    $exe = Join-Path $GameDir 'UNDERTALE.exe'
+    $sc = (New-Object -ComObject WScript.Shell).CreateShortcut($lnk)
+    $sc.TargetPath = $exe
+    $sc.Arguments = "-game $ModFile"
+    $sc.WorkingDirectory = $GameDir
+    $sc.IconLocation = "$exe,0"
+    $sc.Description = 'Undertale with Undertale Essentials'
+    $sc.Save()
+    $created += "shortcut=$lnk"
+    # installing again keeps the record of what an earlier install added, except a shortcut it made
+    # under another name (the mod's earlier name), which this one replaces
+    $mf = Join-Path $GameDir $Manifest
+    if (Test-Path $mf) {
+        $old = @(Get-Content $mf)
+        $kept = @()
+        foreach ($name in $old) {
+            if ($name -like 'shortcut=*.lnk' -and $name -ne "shortcut=$lnk") {
+                $p = $name.Substring(9)
+                if (Test-Path -LiteralPath $p) { Remove-Item -LiteralPath $p; Say 'Replaced the old desktop shortcut' }
+            } else {
+                $kept += $name
+            }
+        }
+        $created = $kept + $created | Select-Object -Unique
+    }
+    [System.IO.File]::WriteAllLines($mf, [string[]]$created)
+    return $true
+}
+
+if ($Library) { return }
+
+# Console version (Uninstall.bat, or install.ps1 run directly)
+Say ''
+Say "  UNDERTALE ESSENTIALS  $Version" 'Yellow'
+Say '  Early test version: expect bugs and issues.' 'Yellow'
+Say ''
+
+if ($GameDir -eq '') { $GameDir = Ask-GameDir }
+if (-not (Test-Path (Join-Path $GameDir 'UNDERTALE.exe'))) {
+    Say "UNDERTALE.exe isn't in that folder: $GameDir" 'Red'
     Say 'Nothing was changed.' 'Red'
     exit 1
 }
-
-$target = Join-Path $GameDir $ModFile
-$tmp = "$target.tmp"
-Say 'Building data_framerate.win from your data.win (this takes a few seconds)...'
-Apply-Patch $dataWin $tmp $patch
-if ((Sha1 $tmp) -ne $wantNew) {
-    Remove-Item -LiteralPath $tmp
-    Say 'The result did not check out, so it was not installed. Nothing was changed.' 'Red'
-    exit 1
+if ($Uninstall) {
+    if (Uninstall-Mod $GameDir) { exit 0 } else { exit 1 }
 }
-Move-Item -LiteralPath $tmp -Destination $target -Force
-$created = @($ModFile)
-
-# options.ini: turn off GameMaker's alternate sync method (see the top of this file). The backup is
-# made once, so installing again never overwrites the original.
-$opt = Join-Path $GameDir 'options.ini'
-if (Test-Path -LiteralPath $opt) {
-    $text = [System.IO.File]::ReadAllText($opt)
-    if ($text -match '(?m)^AlternateSyncMethod=1\s*$') {
-        $ob = Join-Path $GameDir $OptionsBackup
-        if (-not (Test-Path -LiteralPath $ob)) { Copy-Item -LiteralPath $opt -Destination $ob }
-        [System.IO.File]::WriteAllText($opt, ($text -replace '(?m)^AlternateSyncMethod=1', 'AlternateSyncMethod=0'))
-    }
-}
-
-# Lets UNDERTALE.exe start directly (from the shortcut) without Steam restarting it.
-$appid = Join-Path $GameDir 'steam_appid.txt'
-if (-not (Test-Path $appid)) {
-    [System.IO.File]::WriteAllText($appid, '391540')
-    $created += 'steam_appid.txt'
-}
-
-if ($ShortcutDir -eq '') { $ShortcutDir = [Environment]::GetFolderPath('Desktop') }
-$lnk = Join-Path $ShortcutDir $Shortcut
-$exe = Join-Path $GameDir 'UNDERTALE.exe'
-$sc = (New-Object -ComObject WScript.Shell).CreateShortcut($lnk)
-$sc.TargetPath = $exe
-$sc.Arguments = "-game $ModFile"
-$sc.WorkingDirectory = $GameDir
-$sc.IconLocation = "$exe,0"
-$sc.Description = 'Undertale with Undertale Essentials'
-$sc.Save()
-$created += "shortcut=$lnk"
-# installing again keeps the record of what an earlier install added, except a shortcut it made
-# under another name (the mod's earlier name), which this one replaces
-$mf = Join-Path $GameDir $Manifest
-if (Test-Path $mf) {
-    $old = @(Get-Content $mf)
-    $kept = @()
-    foreach ($name in $old) {
-        if ($name -like 'shortcut=*.lnk' -and $name -ne "shortcut=$lnk") {
-            $p = $name.Substring(9)
-            if (Test-Path -LiteralPath $p) { Remove-Item -LiteralPath $p; Say 'Replaced the old desktop shortcut' }
-        } else {
-            $kept += $name
-        }
-    }
-    $created = $kept + $created | Select-Object -Unique
-}
-[System.IO.File]::WriteAllLines($mf, [string[]]$created)
-
+if (-not (Install-Mod $GameDir $ShortcutDir)) { exit 1 }
 Say ''
 Say 'Installed!' 'Green'
 Say ''
