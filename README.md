@@ -23,7 +23,7 @@ Undertale kept as close to the original as possible, with only the essentials ad
 few of the most common complaints, and fixes for bugs that newer versions of Windows brought out
 in the unchanged game. The story, art, music and balance stay exactly as they were.
 
-- **Smooth frame rates:** 60, 120, 144 fps or more, at the game's normal speed.
+- **Smooth frame rates:** 60, 120, 144 fps or even up to 1000fps, at the game's normal speed.
 - **Extra controls:** W A S D and J K L (rebindable) alongside the normal keys.
 - **Fixes:** music no longer cuts out at high pitch on Windows 10 and 11 (more below).
 
