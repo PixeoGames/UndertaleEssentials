@@ -17,6 +17,7 @@
 > If something breaks, please [report it](../../issues/new/choose): the bug report form asks for
 > what's needed. The mod is provided as is, with no warranty (see the
 > [license](LICENSE)).
+> This mod was made with AI Assisted Development, however the code has been reviewed and implementation designed by humans
 
 Undertale kept as close to the original as possible, with only the essentials added: answers to a
 few of the most common complaints, and fixes for bugs that newer versions of Windows brought out
