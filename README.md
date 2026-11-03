@@ -35,7 +35,7 @@ in the unchanged game. The story, art, music and balance stay exactly as they we
 
 ## Install
 
-1. Download `UndertaleEssentials-0.3-test.zip` from [Releases](../../releases) and extract it.
+1. Download `UndertaleEssentials-0.3.1-test.zip` from [Releases](../../releases) and extract it.
 2. Double-click `Install.bat`. A window opens and finds Undertale by itself.
 3. Click **Back up my saves**, then **Install**.
 4. Play with the new **Undertale Essentials** shortcut on your desktop, or the window's **Play**
@@ -118,7 +118,7 @@ python mod/tools/package.py --game "C:\Program Files (x86)\Steam\steamapps\commo
 - `package.py` builds again and makes the same package as a release download:
   `dist\UndertaleEssentials-<version>\` and a .zip of it.
 - Builds are reproducible. `build.py` prints the SHA-1 of the file it wrote, and building a
-  release's source gives exactly that release's file (for 0.3, `7bca2994d1394f8428b116e405bde26dd7381bf6`).
+  release's source gives exactly that release's file (for 0.3.1, `05a73be03e0541813f872bfd4d5631e7cf0f7bb8`).
 
 The [developer notes](mod/README.md) cover how it works and the testing aids.
 

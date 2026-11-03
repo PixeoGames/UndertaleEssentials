@@ -126,7 +126,7 @@ for (var v = 7; v >= 0; v--)
     global.__fl_vcy[v] = 0;
     global.__fl_vshk[v] = 0;
 }
-global.__fl_version = "0.3 EARLY TEST";
+global.__fl_version = "0.3.1 EARLY TEST";
 global.__fl_font = -1;       // the game's current font and text alignment (the draw_set_font /
 global.__fl_halign = fa_left; // draw_set_halign / draw_set_valign calls are wrapped to track them,
 global.__fl_valign = fa_top;  // since GameMaker 1.4 can't read them back)

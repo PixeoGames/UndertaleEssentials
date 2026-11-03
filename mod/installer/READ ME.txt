@@ -1,5 +1,5 @@
-UNDERTALE ESSENTIALS  -  test version 0.3
-==========================================
+UNDERTALE ESSENTIALS  -  test version 0.3.1
+===========================================
 
 Undertale kept as close to the original as possible, with only the essentials
 added: 60, 120 or more frames per second at the normal game speed, extra

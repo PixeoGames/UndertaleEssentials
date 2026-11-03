@@ -16,7 +16,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 MOD = os.path.dirname(HERE)
 ROOT = os.path.dirname(MOD)
-VERSION = '0.3-test'
+VERSION = '0.3.1-test'
 NAME = f'UndertaleEssentials-{VERSION}'
 
 

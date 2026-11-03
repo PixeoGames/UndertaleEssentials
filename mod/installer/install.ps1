@@ -13,7 +13,7 @@ param([string]$GameDir = '', [switch]$Uninstall, [string]$ShortcutDir = '', [swi
 $ErrorActionPreference = 'Stop'
 $Here = $PSScriptRoot
 $PatchPath = Join-Path $Here 'data_framerate.patch'
-$Version = '0.3 (early test)'
+$Version = '0.3.1 (early test)'
 $ModFile = 'data_framerate.win'
 $Shortcut = 'Undertale Essentials.lnk'
 # file names from when the mod was called "Undertale Framerate Mod", kept so earlier installs
