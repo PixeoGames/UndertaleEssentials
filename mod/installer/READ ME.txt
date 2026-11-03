@@ -49,6 +49,12 @@ person who sent you this:
 - your frame rate setting (F1),
 - a screenshot or short video if you can.
 
+Installer problems: the installer says what went wrong and what to do. It also keeps
+a log for bug reports: click "Copy details for a bug report" in its window, or find
+the file  %TEMP%\UndertaleEssentials-installer.log  (paste that into the File
+Explorer address bar). If the installer window doesn't open at all, Install.bat
+offers to install in its own window instead.
+
 
 LICENSE
 Undertale Essentials, copyright (C) 2026 Pixeo. It is free software under the

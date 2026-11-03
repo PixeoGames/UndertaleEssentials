@@ -91,16 +91,34 @@ More detail is in the [developer notes](mod/README.md).
 
 ## Building from source
 
-Needs Python 3, Undertale v1.08 from Steam, and the command-line build of
-[UndertaleModTool](https://github.com/UnderminersTeam/UndertaleModTool) (v0.9.2.0) extracted to
-`tools/utmt_cli`. Then:
+You need Windows 10 or 11 and:
+
+- **Python 3.8 or newer** (tested with 3.14). The build only uses Python's standard library.
+- **Undertale v1.08 from Steam.** The build checks that its `data.win` is the right one and never
+  changes it.
+- **UndertaleModTool's command-line version, 0.9.2.0.** Download `UTMT_CLI_v0.9.2.0-Windows.zip`
+  from its [0.9.2.0 release](https://github.com/UnderminersTeam/UndertaleModTool/releases/tag/0.9.2.0)
+  and extract its contents into `tools\utmt_cli` in this repository, so that
+  `tools\utmt_cli\UndertaleModCli.exe` exists. It includes its own .NET, so nothing else is needed.
+
+Then, in the repository folder, with your own Undertale folder (in Steam: right-click Undertale >
+Manage > Browse local files):
 
 ```
-python mod/tools/build.py --game "<Undertale folder>"
-python mod/tools/package.py --game "<Undertale folder>"
+python mod/tools/build.py --game "C:\Program Files (x86)\Steam\steamapps\common\Undertale"
+python mod/tools/package.py --game "C:\Program Files (x86)\Steam\steamapps\common\Undertale"
 ```
 
-The [developer notes](mod/README.md) cover the details.
+- `build.py` writes `data_framerate.win` into the game folder (`--out FILE` writes it somewhere
+  else). To play it, start `UNDERTALE.exe -game data_framerate.win` in the game folder with Steam
+  running. The first build takes about three minutes, because it decompiles the game into `work\`
+  first; later builds reuse that and take about a minute and a half.
+- `package.py` builds again and makes the same package as a release download:
+  `dist\UndertaleEssentials-<version>\` and a .zip of it.
+- Builds are reproducible. `build.py` prints the SHA-1 of the file it wrote, and building a
+  release's source gives exactly that release's file (for 0.3, `7bca2994d1394f8428b116e405bde26dd7381bf6`).
+
+The [developer notes](mod/README.md) cover how it works and the testing aids.
 
 ## License and disclaimer
 

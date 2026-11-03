@@ -59,6 +59,35 @@ plain name as cdecl, which crashes on stdcall Windows functions with arguments, 
 Wine/Proton, and gives up without changing anything if something doesn't match. `timerfix=0` in
 `UndertaleFramerate.ini` turns it off. Full write-up: [docs/timer-resolution-bug.md](../docs/timer-resolution-bug.md).
 
+## Installer
+
+`Install.bat` opens the installer window (`installer/setup.ps1`, WinForms from PowerShell). The
+work is done by `installer/install.ps1` (`Install-Mod`, `Uninstall-Mod`), which `Uninstall.bat`
+and the console fallback also run.
+
+- **Checks before changing anything:** the patch file, `data.win` (missing, already modded, or not
+  v1.08, each with its own explanation), Undertale running from that folder, whether the folder
+  can be written to, and free disk space.
+- **Install record:** `framerate_mod_installed.txt` in the game folder lists what was added. It's
+  written as soon as `data_framerate.win` is in place, so even an install that stops part-way can
+  be uninstalled.
+- **Undo:** if a step fails, everything that run changed is put back (the built file, `options.ini`
+  and its backup, `steam_appid.txt`, the shortcut, the record). A shortcut that can't be made is
+  only a warning. Uninstall carries on past files it can't remove, says which, and keeps them in
+  the record so running it again finishes the job.
+- **Log:** every run adds to `%TEMP%\UndertaleEssentials-installer.log`: Windows, PowerShell and
+  screen scale, the game folder's state (`data.win` size and SHA-1, `options.ini`, the record),
+  each step, and errors with the script line they happened on. The window's "Copy details for a
+  bug report" copies the latest of it. Unexpected errors in the window are caught and logged.
+- **Install.bat** checks the installer's files are there (a run from inside the zip says to unzip
+  first). If the window can't start or stops on an error, it shows its console again and offers
+  the console installer.
+- The window scales its own layout by the screen's DPI (WinForms' automatic scaling doesn't resize
+  controls made from PowerShell).
+- `tools/test_installer.ps1` runs the console installer through normal and failure cases (wrong
+  `data.win`s, the game running, a locked file part-way, a locked file on uninstall, no desktop
+  folder, no patch) in scratch folders and checks what each leaves behind and what the log says.
+
 ## How it works
 
 The runner runs at the chosen frame rate (or as fast as it can, with Unlimited). Timing always uses
@@ -110,13 +139,16 @@ rollback self-check found no leftover state. At a 60 fps cap the modded intro ta
 
 ## Building
 
-Needs Python 3, the original Steam v1.08 `data.win`, and UndertaleModTool's command-line build
-(v0.9.2.0, from its GitHub releases) extracted to `tools/utmt_cli` next to this `mod` folder.
+Setup and commands are in the main [README](../README.md#building-from-source): Windows, Python
+3.8+, the Steam v1.08 `data.win`, and UndertaleModTool's CLI 0.9.2.0 (`UTMT_CLI_v0.9.2.0-Windows.zip`)
+extracted so that `tools/utmt_cli/UndertaleModCli.exe` exists next to this `mod` folder.
 
 ```
 python mod/tools/build.py --game "<folder with data.win>"
 python mod/tools/package.py --game "<folder with data.win>"
 ```
+
+`build.py` checks the setup first (the CLI, `data.win` and its version) and says what's missing.
 
 `build.py` decompiles `data.win` (cached in `work/`), transforms the code and writes
 `data_framerate.win` (`--out FILE` writes elsewhere; `--test-save NAME` gives a test build its own
@@ -132,6 +164,7 @@ save folder). `package.py` makes the tester package in `dist/` and a .zip of it:
 | `mod/tools/gmlparse.py` | Small GML parser |
 | `mod/tools/make_patch.py` | Makes the binary patch (original data.win to modded) |
 | `mod/tools/package.py` | Builds the tester package |
+| `mod/tools/test_installer.ps1` | Tests the installer's normal and failure cases (see Installer above) |
 | `mod/gml/runtime.gml` | The runtime: frame scheduling, interpolation, rollback, input, settings menu |
 | `mod/csx/build.csx` | UndertaleModTool script: imports code, adds the gates and controller objects |
 | `mod/installer/` | Installer: `setup.ps1` (the window `Install.bat` opens), `install.ps1` (the install and uninstall work, also usable from the console, as `Uninstall.bat` does), and the player READ ME |

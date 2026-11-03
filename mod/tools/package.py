@@ -26,7 +26,9 @@ def main():
     a = ap.parse_args()
 
     release = os.path.join(ROOT, 'work', 'builds', 'release.win')
-    subprocess.run([sys.executable, os.path.join(HERE, 'build.py'), '--game', a.game, '--out', release], check=True)
+    os.makedirs(os.path.dirname(release), exist_ok=True)
+    if subprocess.run([sys.executable, os.path.join(HERE, 'build.py'), '--game', a.game, '--out', release]).returncode:
+        raise SystemExit('package: the build failed (see above), so no package was made.')
 
     # top level: only what a player needs to look at; everything else goes in files/
     out = os.path.join(ROOT, 'dist', NAME)
@@ -34,8 +36,9 @@ def main():
         shutil.rmtree(out)
     files = os.path.join(out, 'files')
     os.makedirs(files)
-    subprocess.run([sys.executable, os.path.join(HERE, 'make_patch.py'), os.path.join(a.game, 'data.win'), release,
-                    os.path.join(files, 'data_framerate.patch')], check=True)
+    if subprocess.run([sys.executable, os.path.join(HERE, 'make_patch.py'), os.path.join(a.game, 'data.win'), release,
+                       os.path.join(files, 'data_framerate.patch')]).returncode:
+        raise SystemExit('package: making the patch failed (see above).')
 
     inst = os.path.join(MOD, 'installer')
     for f in ('Install.bat', 'Uninstall.bat', 'READ ME.txt'):

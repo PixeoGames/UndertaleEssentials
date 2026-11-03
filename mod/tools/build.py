@@ -10,6 +10,9 @@ DIR/data_framerate.win). Needs UndertaleModTool's CLI in tools/utmt_cli.
 """
 import argparse, hashlib, json, os, shutil, subprocess, sys
 
+if sys.version_info < (3, 8):
+    raise SystemExit('The build needs Python 3.8 or newer (this is Python %d.%d).' % sys.version_info[:2])
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 MOD = os.path.dirname(HERE)
 ROOT = os.path.dirname(MOD)
@@ -18,6 +21,9 @@ from transform import transform_all  # noqa: E402
 from wrappers import gen as gen_wrappers  # noqa: E402
 
 CLI = os.path.join(ROOT, 'tools', 'utmt_cli', 'UndertaleModCli.exe')
+CLI_DOWNLOAD = 'https://github.com/UnderminersTeam/UndertaleModTool/releases/tag/0.9.2.0'
+# Undertale v1.08 from Steam: the only data.win the mod is made for
+V108_SHA1 = 'cb394cdd8a663bd0e39a5cf1f1607c3d12da4b58'
 
 
 def run_cli(args, env=None):
@@ -81,6 +87,24 @@ def globals_list_script(meta):
     return '\n'.join(lines) + '\n'
 
 
+def check_setup(data_win):
+    # The usual setup mistakes, explained before the slow part starts.
+    if not os.path.isfile(CLI):
+        raise SystemExit(
+            f"UndertaleModTool's command-line version isn't where the build looks for it:\n  {CLI}\n"
+            f"Download UTMT_CLI_v0.9.2.0-Windows.zip from {CLI_DOWNLOAD}\n"
+            f"and extract its contents into {os.path.dirname(CLI)} (so UndertaleModCli.exe is directly in it).")
+    if not os.path.isfile(data_win):
+        raise SystemExit(
+            f"There's no data.win in {os.path.dirname(data_win)}.\n"
+            "Pass the Undertale folder with --game (in Steam: right-click Undertale > Manage > Browse local files).")
+    digest = file_hash(data_win)
+    if digest != V108_SHA1:
+        raise SystemExit(
+            f"{data_win} isn't Undertale v1.08 from Steam (its SHA-1 is {digest}, expected {V108_SHA1}).\n"
+            "If it was modded, Steam's 'Verify integrity of game files' puts the original back.")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--game', default=ROOT, help='folder containing data.win')
@@ -90,9 +114,11 @@ def main():
     a = ap.parse_args()
 
     data_win = os.path.join(a.game, 'data.win')
-    out = a.out or os.path.join(a.game, 'data_framerate.win')
+    out = os.path.abspath(a.out or os.path.join(a.game, 'data_framerate.win'))
+    check_setup(data_win)
     work = os.path.join(ROOT, 'work')
     os.makedirs(work, exist_ok=True)
+    os.makedirs(os.path.dirname(out), exist_ok=True)
 
     code_dir, meta_path = ensure_dump(data_win, work)
     meta = json.load(open(meta_path))
@@ -132,7 +158,8 @@ def main():
     if 'build ok' not in log:
         raise SystemExit('build script did not finish')
     os.replace(tmp_out, out)
-    print('wrote', out)
+    # a build of the same source matches the release byte for byte (compare with its patch's target)
+    print(f'wrote {out} (SHA-1 {file_hash(out)})')
 
 
 if __name__ == '__main__':
