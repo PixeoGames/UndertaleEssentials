@@ -4,7 +4,7 @@
 # checks what each leaves behind and what the log says. Never touches the real game, desktop or saves.
 #   test_installer.ps1 -Package dist\UndertaleEssentials-<version> -DataWin <game folder>\data.win `
 #       -Scratch <empty folder> [-OptionsIni <Undertale's options.ini>]
-# The data.win's folder also needs UNDERTALE.exe and a data_framerate.win built from it (build.py).
+# The data.win's folder also needs UNDERTALE.exe. Exits 1 if any check fails.
 # Each case gets its own copy of the game in Scratch (about 65 MB each). Prints ok/FAIL per check.
 param([string]$Package, [string]$DataWin, [string]$Scratch, [string]$OptionsIni)
 $ErrorActionPreference = 'Stop'
@@ -61,8 +61,12 @@ $r = Run $d @('-Uninstall')
 Check "uninstall leaves $(Files $d)" ((Files $d) -eq 'data.win, options.ini, UNDERTALE.exe')
 
 "3. wrong data.win: already modded, another version, missing"
+# "modded": this package's own data_framerate.win, copied over data.win by hand
+$src = New-Game 'modded-source'
+$null = Run $src
 $d = New-Game 'modded'
-Copy-Item (Join-Path (Split-Path $DataWin) 'data_framerate.win') "$d\data.win" -Force
+Copy-Item "$src\data_framerate.win" "$d\data.win" -Force
+Remove-Item $src -Recurse -Force
 $r = Run $d
 Check "modded: exit 1, says already modded, nothing added ($(Files $d))" ($r.Code -eq 1 -and $r.Out -match 'already been replaced' -and (Files $d) -eq 'data.win, options.ini, UNDERTALE.exe')
 $d = New-Game 'other'
@@ -123,4 +127,4 @@ $out = & powershell -NoProfile -ExecutionPolicy Bypass -File "$lone\install.ps1"
 Check "exit 1, says unzip first ($LASTEXITCODE)" ($LASTEXITCODE -eq 1 -and $out -match 'Unzip the whole folder first')
 
 ''
-if ($script:fails -eq 0) { 'all checks passed' } else { "$($script:fails) checks failed" }
+if ($script:fails -eq 0) { 'all checks passed' } else { "$($script:fails) check(s) failed"; exit 1 }
