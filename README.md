@@ -111,7 +111,9 @@ python mod/tools/package.py --game "C:\Program Files (x86)\Steam\steamapps\commo
 
 - `build.py` writes `data_framerate.win` into the game folder (`--out FILE` writes it somewhere
   else). To play it, start `UNDERTALE.exe -game data_framerate.win` in the game folder with Steam
-  running. The first build takes about three minutes, because it decompiles the game into `work\`
+  running. Started that way, the game also needs a `steam_appid.txt` containing `391540` next to
+  `UNDERTALE.exe` (the installer adds one); otherwise set Steam's launch option for Undertale to
+  `-game data_framerate.win` and start it from Steam. The first build takes about three minutes, because it decompiles the game into `work\`
   first; later builds reuse that and take about a minute and a half.
 - `package.py` builds again and makes the same package as a release download:
   `dist\UndertaleEssentials-<version>\` and a .zip of it.
